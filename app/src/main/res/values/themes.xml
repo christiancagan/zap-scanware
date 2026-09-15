@@ -1,0 +1,9 @@
+<resources>
+    <style name="Theme.ZapScanware" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:colorPrimary">@color/primary_blue</item>
+        <item name="android:colorSecondary">@color/secondary_teal</item>
+        <item name="android:colorError">@color/error_red</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+</resources>

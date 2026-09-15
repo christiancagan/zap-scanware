@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zap Scanware — Download</title>
+    <meta name="description" content="Download the Zap Scanware Android malware protection app.">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #0d47a1 0%, #1565c0 50%, #00897b 100%);
+            color: #fff;
+            padding: 24px;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 48px 40px;
+            max-width: 440px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+        }
+        .logo {
+            width: 88px;
+            height: 88px;
+            margin: 0 auto 20px;
+            background: #fff;
+            border-radius: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .logo svg { width: 52px; height: 52px; }
+        h1 { font-size: 28px; font-weight: 700; margin-bottom: 6px; }
+        .tagline { font-size: 15px; opacity: 0.9; margin-bottom: 8px; }
+        .version { font-size: 13px; opacity: 0.75; margin-bottom: 28px; }
+        .dl-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            background: #fff;
+            color: #0d47a1;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: 700;
+            padding: 16px 28px;
+            border-radius: 999px;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+        }
+        .dl-btn:hover { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35); }
+        .dl-btn:active { transform: translateY(0); }
+        .dl-btn svg { width: 26px; height: 26px; }
+        .meta { margin-top: 26px; font-size: 13px; opacity: 0.8; }
+        .meta span { display: inline-block; margin: 0 8px; }
+        .hashbox {
+            margin-top: 16px;
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 12px;
+            padding: 12px;
+            text-align: left;
+        }
+        .hashbox .lbl { font-size: 11px; opacity: 0.7; text-transform: uppercase; letter-spacing: 0.5px; }
+        .hashbox code {
+            display: block;
+            font-family: 'Consolas', 'Menlo', monospace;
+            font-size: 11px;
+            word-break: break-all;
+            margin: 6px 0 10px;
+            opacity: 0.95;
+        }
+        .hashbox .copy-btn {
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            padding: 7px 14px;
+            font-size: 12px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .hashbox .copy-btn:hover { background: rgba(255, 255, 255, 0.25); }
+        .features {
+            margin-top: 24px;
+            text-align: left;
+            font-size: 14px;
+            opacity: 0.92;
+            list-style: none;
+        }
+        .features li { padding: 6px 0; }
+        .features li::before { content: "✓ "; color: #b2ffd9; font-weight: 700; }
+        .note { margin-top: 22px; font-size: 12px; opacity: 0.7; line-height: 1.5; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="logo">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2L4 5v6c0 5.55 3.84 10.74 8 12 4.16-1.26 8-6.45 8-12V5l-8-3z" fill="#1565c0"/>
+                <circle cx="12" cy="10" r="2.4" fill="#fff"/>
+                <rect x="11.1" y="10" width="1.8" height="5" rx="0.9" fill="#fff"/>
+            </svg>
+        </div>
+        <h1>Zap Scanware</h1>
+        <p class="tagline">Lightweight Android malware protection</p>
+        <p class="version">Version 1.0.1 (build 2) · Android 8.0+</p>
+
+        <a class="dl-btn" href="zap-scanware-debug.apk" download="zap-scanware-debug.apk">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 3v10m0 0l-4-4m4 4l4-4" stroke="#0d47a1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M5 17v2a2 2 0 002 2h10a2 2 0 002-2v-2" stroke="#0d47a1" stroke-width="2.2" stroke-linecap="round"/>
+            </svg>
+            Download APK
+        </a>
+
+        <ul class="features">
+            <li>On-device malware &amp; APK scanning</li>
+            <li>Signature feed &amp; threat-intel checks</li>
+            <li>URL / site validation</li>
+            <li>Fingerprint-protected login</li>
+            <li>Privacy-first, no telemetry</li>
+        </ul>
+
+        <p class="meta">
+            <span>21.4 MB</span> · <span>APK</span> · <span>Signed</span> · <span>v1.0.1 (2)</span>
+        </p>
+
+        <div class="hashbox">
+            <div class="lbl">SHA-256 checksum</div>
+            <code id="sha256">02FB31770BBD2CCDB0179C6982ECCC4206E42D2969A80A2A3EA5CA54AA0C20CF</code>
+            <button class="copy-btn" onclick="copyHash()">Copy checksum</button>
+        </div>
+
+        <p class="note">
+            Sideload only. Enable "Install from unknown sources" in your
+            device Settings before installing. After download, verify the
+            SHA-256 checksum above matches the file.
+        </p>
+    </div>
+
+    <script>
+        function copyHash() {
+            var t = document.getElementById('sha256').innerText;
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(t).then(function () {
+                    var b = document.querySelector('.copy-btn');
+                    b.innerText = 'Copied!';
+                    setTimeout(function () { b.innerText = 'Copy checksum'; }, 1500);
+                });
+            }
+        }
+    </script>
+</body>
+</html>

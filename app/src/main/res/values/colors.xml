@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primary_blue">#FF1565C0</color>
+    <color name="secondary_teal">#FF00897B</color>
+    <color name="error_red">#FFD32F2F</color>
+    <color name="warning_orange">#FFFF8F00</color>
+    <color name="safe_green">#FF4CAF50</color>
+    <color name="background_dark">#FF121212</color>
+    <color name="surface_dark">#FF1E1E1E</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+</resources>

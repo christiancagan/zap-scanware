@@ -1,0 +1,2 @@
+# GitHub Pages will not run Jekyll on this repo. This ensures the .apk file is
+# served as-is rather than being skipped as a "non-site" file.

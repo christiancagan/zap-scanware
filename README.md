@@ -1,0 +1,160 @@
+# MalwareShield - Mobile Malware Endpoint Protection
+
+## Overview
+Lightweight Android malware detection and prevention application built with Kotlin and modern Android architecture. Supports manual scanning, background scanning, APK static analysis, SHA-256 hashing, VirusTotal integration, URL/site validation, local scan history, and privacy-first operation.
+
+## Logo
+- **Logo path**: `C:\Users\Administrator\Documents\Default Project\MalwareShield\logo\zap logo.jpg`
+- **Installed to**: All `mipmap-*` directories and `drawable/` as `ic_launcher.webp`
+- **Adaptive icons**: `mipmap-anydpi-v26/ic_launcher.xml`, `ic_launcher_foreground.xml`, `ic_launcher_background.xml`
+
+## Technology Stack
+| Component | Technology | Rationale |
+|-----------|-----------|-----------|
+| **Language** | Kotlin 1.9+ | Official Android, null-safe, coroutines |
+| **UI** | Jetpack Compose | Declarative, minimal CPU/GPU overhead |
+| **Architecture** | MVVM + Clean Architecture | Separation of concerns, testable |
+| **Database** | Room (SQLite) | Lightweight, local-first, encrypted |
+| **Background** | WorkManager | Battery-efficient constraints |
+| **Networking** | Retrofit + OkHttp | Lightweight HTTP client |
+| **DI** | Hilt (Dagger) | Minimal overhead dependency injection |
+| **Security** | Android Keystore | Hardware-backed encryption |
+| **Coroutines** | Kotlin Coroutines + Flow | Async without thread overhead |
+| **API** | VirusTotal v3 + Google Safe Browsing | Industry-standard threat intelligence |
+
+## Features
+
+### 1. Manual Malware Scanning
+File picker → SHA-256 → APK analysis → VirusTotal lookup → Threat classification
+
+### 2. Background Scanning
+WorkManager with battery/network constraints
+
+### 3. APK Static Analysis
+Package metadata, permissions, certificate fingerprint, DEX pattern detection
+
+### 4. SHA-256 File Hashing
+Streaming 8KB buffer, no full file loading into RAM
+
+### 5. VirusTotal Integration
+Retrofit-based API, file upload and hash-based report lookup
+
+### 6. URL/Site Validation
+- **URLValidator**: Validates URL integrity, SSL certificates, domain reputation
+- **SuspiciousURLChecker**: Phishing detection, safety scoring (0-100)
+- **SafeBrowsing API**: Google Safe Browsing integration
+- **SSL Certificate Verification**: Issuer, validity dates, self-signed detection
+- **Phishing Indicators**: IP-based URLs, obfuscation, excessive redirects
+- **Homograph Attack Detection**: Unicode character detection
+- **Deep Link Support**: Automatic URL validation on intent
+
+### 7. Local Scan History
+Room database with Flow, encrypted with Android Keystore
+
+### 8. Minimal Resource Consumption
+CPU: Coroutines on Dispatchers.IO, Compose lazy rendering
+RAM: 8KB streaming buffers, Compose minimal composition
+Battery: WorkManager constraints, efficient coroutines
+Network: Minimal API calls, caching, batched requests
+
+### 9. Privacy-First Operation
+All scan data stored locally only, no telemetry, no external data collection
+
+### 10. Clean Material Design 3 UI
+Dark/Light theme, bottom navigation (Scan + Validate + History), threat badges
+
+## Module Structure
+```
+MalwareShield/
+├── app/
+│   └── src/main/java/com/malwareshield/
+│       ├── MalwareShieldApp.kt
+│       ├── data/
+│       │   ├── db/ (MalwareShieldDatabase, ScanHistoryDao)
+│       │   ├── entities/ (ScanHistoryEntity)
+│       │   ├── dao/
+│       │   ├── repository/ (MalwareRepository, BackgroundScanWorker)
+│       ├── domain/
+│       │   └── usecase/ (ScanUseCases)
+│       ├── di/ (AppModule, AppComponent)
+│       ├── presentation/
+│       │   ├── MainActivity.kt
+│       │   ├── screens/
+│       │   │   ├── ScanScreen.kt
+│       │   │   ├── HistoryScreen.kt
+│       │   │   └── URLValidatorScreen.kt
+│       │   ├── viewmodel/ (MalwareScannerViewModel, HistoryViewModel)
+│       │   └── ui/
+│       │       ├── components/ (UIComponents, SafetyScoreIndicator)
+│       │       └── theme/ (Theme)
+│       └── core/
+│           ├── security/
+│           │   ├── APKAnalyzer.kt
+│           │   ├── PrivacyCrypto.kt
+│           │   └── URLValidator.kt (NEW)
+│           ├── network/
+│           │   ├── VirusTotalApiService.kt
+│           │   ├── VirusTotalApiModels.kt
+│           │   ├── VirusTotalClient.kt
+│           │   └── SafeBrowsingApiService.kt (NEW)
+│           ├── scanning/
+│           │   ├── ScanEngine.kt
+│           │   └── ScanResult.kt
+│           ├── storage/ (PreferenceManager.kt)
+│           └── utils/ (HashUtils.kt)
+├── core/signatures/ (MalwareSignatures.kt)
+├── core/utils/ (HashUtils.kt)
+├── logo/ (zap logo.jpg)
+├── build.gradle.kts
+├── settings.gradle.kts
+├── gradle.properties
+├── AGENTS.md
+└── README.md
+```
+
+## URL Validation Features (NEW)
+
+### What it validates:
+1. **SSL/TLS Certificate Integrity** - Issuer, validity, self-signed detection, fingerprint
+2. **Phishing Detection** - IP-based URLs, obfuscation patterns, excessive redirects
+3. **Domain Reputation** - Known malicious/suspicious domain database
+4. **Malware Distribution Check** - Suspicious file extensions in URLs
+5. **URL Integrity** - Null injection, Unicode homograph attacks, excessive length
+6. **Safety Score** - 0-100 scoring based on all checks
+7. **Google Safe Browsing** - Integration with Google's threat intelligence
+
+### Usage:
+```kotlin
+// Validate a URL
+val result = URLValidator.validateURL("https://example.com")
+if (result.isValid && result.hasValidSSL) {
+    // Safe to proceed
+} else {
+    // Block or warn user
+}
+
+// Get safety score
+val score = SuspiciousURLChecker.getSafetyScore(url)
+```
+
+## Build & Install
+```bash
+# Build debug APK
+./gradlew assembleDebug
+
+# Build release APK
+./gradlew assembleRelease
+
+# Run tests
+./gradlew test
+
+# Install on device
+adb install app/build/outputs/apk/debug/app-debug.apk
+```
+
+## Key Optimization Techniques
+- **CPU**: Coroutines on `Dispatchers.IO`, Compose minimal recomposition
+- **RAM**: 8KB streaming hash buffers, Compose lazy rendering
+- **Battery**: WorkManager `@RequiresBatteryNotLow` constraint
+- **Network**: Minimal API calls, batching, HTTP logging disabled in prod
+- **Security**: Android Keystore AES-GCM encryption, cleartext traffic blocked

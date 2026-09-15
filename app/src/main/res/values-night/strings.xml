@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Zap Scanware</string>
+    <string name="scanning">Scanning...</string>
+    <string name="threat_detected">Threat Detected</string>
+    <string name="clean_file">Clean File</string>
+    <string name="privacy_first">All data stored locally</string>
+</resources>
