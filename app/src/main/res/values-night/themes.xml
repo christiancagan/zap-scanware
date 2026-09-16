@@ -1,9 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.ZapScanware" parent="android:Theme.Material.Light.NoActionBar">
+    <!-- Night variant: dark window background + dark platform theme so there is
+         no light flash before Compose paints the dark-navy UI. -->
+    <style name="Theme.ZapScanware" parent="android:Theme.Material.NoActionBar">
         <item name="android:colorPrimary">@color/primary_blue</item>
         <item name="android:colorSecondary">@color/secondary_teal</item>
         <item name="android:colorError">@color/error_red</item>
-        <item name="android:windowBackground">@color/app_background_light</item>
+        <item name="android:windowBackground">@color/app_background_dark</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
     </style>

@@ -7,6 +7,9 @@
     <color name="safe_green">#FF4CAF50</color>
     <color name="background_dark">#FF121212</color>
     <color name="surface_dark">#FF1E1E1E</color>
+    <!-- Matches the Compose theme backgrounds to avoid a pre-render flash. -->
+    <color name="app_background_light">#FFF5F8FB</color>
+    <color name="app_background_dark">#FF071018</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 </resources>
