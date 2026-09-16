@@ -8,8 +8,17 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" android:minSdkVersion="33" />
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
 
-    <!-- Production: QUERY_ALL_PACKAGES triggers Play review and is unnecessary.
-         Declare narrow package-visibility queries instead. -->
+    <!-- Security scanner: enumerating ALL installed apps is core functionality.
+         Without this, Android 11+ hides user-installed apps and the device scan
+         only sees system apps. Google permits QUERY_ALL_PACKAGES for antivirus/
+         security apps when it is the app's core purpose. -->
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+
+    <!-- Optional: lets the user grant "All files access" so the app can search
+         the whole device for APK files to scan. Requested at runtime from
+         Settings; the app degrades gracefully without it. -->
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
+
     <queries>
         <intent>
             <action android:name="android.intent.action.VIEW" />
