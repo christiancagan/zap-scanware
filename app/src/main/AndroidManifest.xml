@@ -40,6 +40,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
+            <!-- Share target: "Scan link" — receive URLs shared from any browser. -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+
             <!-- Deep links for URL validation: explicit schemes only.
                  host="*" is invalid and silently drops the filter. -->
             <intent-filter android:autoVerify="true">
