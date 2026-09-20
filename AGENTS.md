@@ -75,6 +75,22 @@ Format-aware scanning beyond APKs (see `ENHANCEMENT_PLAN.md`):
   double-extension disguise detection.
 - No execution; streaming, bounded, fail-safe.
 
+### 13. Hash Reputation & Content Filter
+- **Reputation pipeline** (`core/reputation/ReputationService`): feeds →
+  cache → MalwareBazaar → VirusTotal (rate-limited, 24h cache). Used by the
+  manual scan path and the full device scan.
+- **Apps**: every installed app's APK is hashed and reputation-checked
+  (`InstalledAppScanner.apps` → `FullDeviceScanner`), alongside permission
+  scoring. Malicious findings are persisted to scan history.
+- **Files**: every storage target is hashed and reputation-checked during the
+  device scan.
+- **Content filter** (`core/content/`): category classifier (adult, gambling,
+  violence, drugs, piracy, malware) + custom blocklist; user chooses
+  **Notify** or **Block**. Enforced by `UrlGuardAccessibilityService`, which
+  launches `BlockActivity` on a blocked category.
+- Configured in Settings → *Content filter*; requires the accessibility service
+  to be enabled. See `ENHANCEMENT_PLAN_2.md`.
+
 ## Module Structure
 ```
 MalwareShield/
@@ -90,6 +106,7 @@ MalwareShield/
 │       │   └── usecase/ (ScanUseCases)
 │       ├── presentation/
 │       │   ├── MainActivity.kt
+│       │   ├── BlockActivity.kt
 │       │   ├── screens/
 │       │   │   ├── ScanScreen.kt
 │       │   │   ├── HistoryScreen.kt
@@ -120,6 +137,8 @@ MalwareShield/
 │           │   ├── rules/ (ThreatSignatures, YaraRule, RuleParser,
 │           │   │            RuleCondition, RuleEngine, BundledRules)
 │           │   └── util/ (BytePatternScanner, Entropy, StringExtractor, AnalysisIo)
+│           ├── content/ (ContentCategory, CategoryClassifier, ContentFilter)
+│           ├── reputation/ (ReputationService, ReputationCache, RateLimiter, ReputationVerdict)
 │           ├── auth/
 │           │   ├── BiometricAuthenticator.kt
 │           │   ├── SecureCredentialsManager.kt

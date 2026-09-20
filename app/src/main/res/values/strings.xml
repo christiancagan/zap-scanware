@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Zap Scanware</string>
-    <string name="accessibility_service_description">Zap Scanware watches the site you are currently viewing and checks it against malware and phishing feeds, warning you if it is risky. Only the on-screen URL is read; no content is stored or sent anywhere.</string>
+    <string name="accessibility_service_description">Zap Scanware watches the site you are currently viewing and checks it against malware, phishing and content-category rules (adult, gambling, violence, drugs, piracy). It can warn you or block the page. Only the on-screen URL is read; no content is stored or sent anywhere.</string>
     <string name="scan">Scan</string>
     <string name="scanning">Scanning...</string>
     <string name="scan_complete">Scan Complete</string>

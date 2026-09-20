@@ -67,6 +67,16 @@
             </intent-filter>
         </activity>
 
+        <!-- Full-screen warning shown by the URL guard for blocked categories.
+             Internal only: not exported, excluded from recents and history. -->
+        <activity
+            android:name=".presentation.BlockActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:launchMode="singleTop"
+            android:theme="@style/Theme.ZapScanware" />
+
         <!-- Automatic URL guard: reads the URL of the currently-visited app and
              checks it against malware/phishing feeds. User must enable this in
              Settings → Accessibility. -->
