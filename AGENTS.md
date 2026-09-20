@@ -95,6 +95,18 @@ Format-aware scanning beyond APKs (see `ENHANCEMENT_PLAN.md`):
 - Configured in Settings → *Content filter*; requires the accessibility service
   to be enabled. See `ENHANCEMENT_PLAN_2.md`.
 
+### 14. Link Protection, Download Scanning & UI
+- **Safe Browse** (`core/safebrowse/SafeBrowseVpnService`): a DNS-filtering
+  `VpnService` that classifies each queried domain with `ContentFilter` and
+  returns NXDOMAIN for blocked/malware names — a real "scan before open"
+  (domain granularity; DoH/DoT can bypass). Enabled in Settings → Safe Browse.
+- **Download scanning** (`core/downloads/`): `DownloadMonitor` observes new
+  downloads and `DownloadScanWorker` analyzes + reputation-checks them, then
+  notifies and records to history. Toggle: Settings → Scan downloaded files.
+- **UI**: APK scanner trimmed (no "any file"); History/Schedule/Guide modernized
+  (gradient heroes, live countdown, searchable guide); URL Validator redesigned
+  with an off-main safety score. See `ENHANCEMENT_PLAN_3.md`.
+
 ## Module Structure
 ```
 MalwareShield/
@@ -143,6 +155,8 @@ MalwareShield/
 │           │   └── util/ (BytePatternScanner, Entropy, StringExtractor, AnalysisIo)
 │           ├── content/ (ContentCategory, CategoryClassifier, ContentFilter)
 │           ├── reputation/ (ReputationService, ReputationCache, RateLimiter, ReputationVerdict)
+│           ├── downloads/ (DownloadMonitor, DownloadScanWorker, DownloadScanNotifier)
+│           ├── safebrowse/ (SafeBrowseVpnService, DnsPacket)
 │           ├── auth/
 │           │   ├── BiometricAuthenticator.kt
 │           │   ├── SecureCredentialsManager.kt

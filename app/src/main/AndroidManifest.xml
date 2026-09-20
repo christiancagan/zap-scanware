@@ -77,6 +77,17 @@
             android:launchMode="singleTop"
             android:theme="@style/Theme.ZapScanware" />
 
+        <!-- Safe Browse: DNS-filtering VPN that blocks risky/blocked domains
+             before a connection is made. Requires user VPN consent. -->
+        <service
+            android:name=".core.safebrowse.SafeBrowseVpnService"
+            android:exported="false"
+            android:permission="android.permission.BIND_VPN_SERVICE">
+            <intent-filter>
+                <action android:name="android.net.VpnService" />
+            </intent-filter>
+        </service>
+
         <!-- Automatic URL guard: reads the URL of the currently-visited app and
              checks it against malware/phishing feeds. User must enable this in
              Settings → Accessibility. -->
