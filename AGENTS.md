@@ -60,6 +60,21 @@ All data stored locally only, no telemetry
 ### 11. Clean Material Design 3 UI
 Dark/Light theme, bottom navigation (Auth + Scan + Validate + History), threat badges
 
+### 12. Multi-Format Static Analysis
+Format-aware scanning beyond APKs (see `ENHANCEMENT_PLAN.md`):
+- **Identification**: magic-byte sniffing overrides disguised extensions
+  (`FileTypeIdentifier`).
+- **Analyzers** (`core/analysis/analyzers/`): APK, `.apks`/`.xapk`, `.aab`,
+  `.dex`/`.odex`, `.jar`/`.class`, Windows PE, scripts, archives (recursive,
+  bomb-guarded), macro/active-content documents.
+- **Rule engine**: YARA-compatible subset (bundled + feed rules) run on every
+  file (`RuleEngine`); feed schema v2 adds `yara_rules`.
+- **PE**: header/section parse, packer + writable/executable sections,
+  per-section entropy, keylogger/injection/downloader imports.
+- **Archives**: recursive ZIP/GZIP/TAR member analysis with `BombGuard` and
+  double-extension disguise detection.
+- No execution; streaming, bounded, fail-safe.
+
 ## Module Structure
 ```
 MalwareShield/
@@ -91,6 +106,20 @@ MalwareShield/
 │       │       ├── MalwareScannerViewModel.kt
 │       │       └── HistoryViewModel.kt
 │       └── core/
+│           ├── analysis/
+│           │   ├── FileType.kt
+│           │   ├── FileTypeIdentifier.kt
+│           │   ├── AnalysisReport.kt
+│           │   ├── FileAnalyzer.kt
+│           │   ├── ScanDispatcher.kt
+│           │   ├── analyzers/ (AndroidPackage, ArchivePackage, Aab, Dex, Jar,
+│           │   │               Pe, Script, Archive, Document, SignatureRule,
+│           │   │               Generic)
+│           │   ├── archive/ (BombGuard.kt)
+│           │   ├── pe/ (PeParser.kt)
+│           │   ├── rules/ (ThreatSignatures, YaraRule, RuleParser,
+│           │   │            RuleCondition, RuleEngine, BundledRules)
+│           │   └── util/ (BytePatternScanner, Entropy, StringExtractor, AnalysisIo)
 │           ├── auth/
 │           │   ├── BiometricAuthenticator.kt
 │           │   ├── SecureCredentialsManager.kt
@@ -149,6 +178,26 @@ MalwareShield/
 ./gradlew assembleRelease
 adb install app/build/outputs/apk/debug/app-debug.apk
 ```
+
+## Release & Publishing (REQUIRED for every enhancement/change)
+
+Whenever new code is an enhancement or behavior change, the app MUST be
+published as part of the same task — do not leave it as an uncommitted local
+build. Publishing means:
+
+1. **Bump the version** in `app/build.gradle.kts` (`versionCode` +1,
+   `versionName` semver) for any user-visible change.
+2. **Build**: `./gradlew testDebugUnitTest assembleDebug` — tests must pass.
+3. **Stage the APK for the download page**: copy
+   `app/build/outputs/apk/debug/zap-scanware-debug.apk` over
+   `docs/zap-scanware-debug.apk` (GitHub Pages serves this file).
+4. **Update `docs/README.md`** if the APK size/version is mentioned.
+5. **Commit and push** to `origin main` with a descriptive message
+   (e.g. `vX.Y.Z: <summary>`). GitHub Pages re-deploys automatically.
+
+Do not publish on trivial internal-only edits (typos in comments, docs-only
+changes) unless the user asks. Never commit secrets (`local.properties`,
+keystores, API keys are git-ignored).
 
 ## Best Practices
 - All network calls use Suspend functions with Coroutines
