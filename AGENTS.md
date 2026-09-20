@@ -107,6 +107,16 @@ Format-aware scanning beyond APKs (see `ENHANCEMENT_PLAN.md`):
   (gradient heroes, live countdown, searchable guide); URL Validator redesigned
   with an off-main safety score. See `ENHANCEMENT_PLAN_3.md`.
 
+### 15. Performance & Storage Hygiene
+- **`core/perf/CacheManager`**: reports cache/temp size, clears temporary files,
+  clears the whole cache, and removes stale scratch files (24h) on startup.
+- Temp artifacts use recognized prefixes (`scan-`, `file-`, `dl_scan_`,
+  `ms_pkg_`, `ms_arc_`) and are deleted in `finally` / after use.
+- `MalwareShieldApp.onTrimMemory` drops rebuildable in-memory caches under
+  pressure; user data is never touched.
+- Settings → *Storage & performance* shows sizes and offers manual clear.
+- See `PERFORMANCE.md` for the rules and runbook.
+
 ## Module Structure
 ```
 MalwareShield/
@@ -157,6 +167,7 @@ MalwareShield/
 │           ├── reputation/ (ReputationService, ReputationCache, RateLimiter, ReputationVerdict)
 │           ├── downloads/ (DownloadMonitor, DownloadScanWorker, DownloadScanNotifier)
 │           ├── safebrowse/ (SafeBrowseVpnService, DnsPacket)
+│           ├── perf/ (CacheManager)
 │           ├── auth/
 │           │   ├── BiometricAuthenticator.kt
 │           │   ├── SecureCredentialsManager.kt
