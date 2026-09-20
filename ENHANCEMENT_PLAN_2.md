@@ -173,3 +173,23 @@ app/src/test/.../core/content/CategoryClassifierTest.kt
 - Blocking depends on the accessibility service being enabled and on the
   browser exposing the URL; it is a soft block (user can dismiss).
 
+## 10. Follow-up — Quick / Deep scan modes
+
+Implemented after the lightweight assessment to restore a low-cost path.
+
+- `core/security/ScanMode.kt` — `QUICK` / `DEEP` with descriptions.
+- `PreferenceManager.scanMode` (default `DEEP`) persists the user's choice.
+- `Device scan` screen shows a **Quick / Deep** selector with the mode's
+  description; `DeviceScanViewModel` passes the mode to the scanner.
+- `FullDeviceScanner.scan(mode, onProgress)` routes to:
+  - **Quick** (`quickScan`): installed apps scored by permissions/signature;
+    APK files hashed and checked against the offline signature feed only.
+    No analyzers, no network.
+  - **Deep** (`deepScan`, default): every app and file hashed + reputation
+    (feeds → MalwareBazaar → VirusTotal); every file runs the full multi-format
+    analysis pipeline.
+
+This keeps the lightweight, battery-friendly path available while the thorough
+engine remains the default.
+
+

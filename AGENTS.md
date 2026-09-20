@@ -88,6 +88,10 @@ Format-aware scanning beyond APKs (see `ENHANCEMENT_PLAN.md`):
   violence, drugs, piracy, malware) + custom blocklist; user chooses
   **Notify** or **Block**. Enforced by `UrlGuardAccessibilityService`, which
   launches `BlockActivity` on a blocked category.
+- **Scan modes** (`ScanMode`): Device scan offers **Quick** (local: app
+  permission/signature scoring + offline APK hash feed, no network) and
+  **Deep** (default: full multi-format analysis + cloud reputation). Persisted
+  via `PreferenceManager.scanMode`.
 - Configured in Settings → *Content filter*; requires the accessibility service
   to be enabled. See `ENHANCEMENT_PLAN_2.md`.
 
