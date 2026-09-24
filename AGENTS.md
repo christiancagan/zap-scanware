@@ -171,6 +171,23 @@ items:
   intelligence shows VT slots, queue depth, and a clear-queue action.
 - **Tests**: `CloudQueuePolicyTest` (6) and `SignatureVerifierTest` (4).
 
+### 17. MalwareBazaar integration (v1.16.0)
+abuse.ch now requires an `Auth-Key` header on every request, so the old keyless
+lookup was broken. See `ENHANCEMENT_PLAN_6.md`.
+
+- **Auth-Key**: `PreferenceManager.malwareBazaarAuthKey` (stored encrypted via
+  `PrivacyCrypto`); `MalwareBazaarClient.lookupHash(api, sha256, authKey)` sends
+  the header and returns null when no key is set. Settings has a masked key field.
+- **Recent-detections mirror** (`core/signatures/MalwareBazaarFeed`): pulls
+  `recent_detections` (≤168 h), validates/lowercases SHA-256, persists
+  `{sha256, family, tags, first_seen}` to `filesDir/mb_signatures.json`.
+  `SignatureFeedManager.isKnownMaliciousHash` now also matches this mirror, so
+  the whole app gets real offline hashes. `MalwareBazaarFeedParser` is pure and
+  tested.
+- **Scheduling**: the daily `SignatureFeedWorker` refreshes the mirror when a key
+  is configured; Settings → Threat intelligence has Save/Sync and a live count.
+- **Tests**: `MalwareBazaarFeedParserTest` (5).
+
 ## Module Structure
 ```
 MalwareShield/
@@ -244,7 +261,7 @@ MalwareShield/
 │           │   ├── ScanEngine.kt
 │           │   └── ScanResult.kt
 │           ├── signatures/ (SignatureFeedManager, SignatureFeedModels,
-│           │                 SignatureVerifier)
+│           │                 SignatureVerifier, MalwareBazaarFeed)
 │           ├── storage/ (PreferenceManager.kt)
 │           └── utils/ (HashUtils.kt)
 ├── core/signatures/ (MalwareSignatures.kt)

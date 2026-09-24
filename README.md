@@ -92,6 +92,17 @@ Dark/Light theme, bottom navigation (Scan + Validate + History), threat badges
 - Settings shows VirusTotal slots free, queued lookups, and feed-signature
   status.
 
+### 13. MalwareBazaar Integration (v1.16.0)
+- **Auth-Key** support (abuse.ch now requires it): entered in Settings, stored
+  encrypted with the Android Keystore.
+- **Recent-detections offline mirror** (`MalwareBazaarFeed`): pulls recent
+  family-labelled samples from MalwareBazaar and keeps their SHA-256 hashes +
+  family/tags locally (`filesDir/mb_signatures.json`), refreshed daily. Every
+  scan path (manual, device, download, Safe Browse) can then flag those hashes
+  **offline**.
+- Settings → Threat intelligence: masked key field, Save/Sync, and live mirror
+  count.
+
 ## Module Structure
 ```
 MalwareShield/
