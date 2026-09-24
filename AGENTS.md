@@ -316,7 +316,15 @@ build. Publishing means:
 3. **Stage the APK for the download page**: copy
    `app/build/outputs/apk/debug/zap-scanware-debug.apk` over
    `docs/zap-scanware-debug.apk` (GitHub Pages serves this file).
-4. **Update `docs/README.md`** if the APK size/version is mentioned.
+4. **Update the GitHub Pages landing page** `docs/index.html` — it hardcodes the
+   values, so refresh all three (compute with
+   `(Get-FileHash docs/zap-scanware-debug.apk -Algorithm SHA256).Hash` and the
+   file length):
+   - the `.version` line (`Version X.Y.Z (build N) · Android 8.0+`),
+   - the `.meta` line (`<size> MB · APK · Signed · vX.Y.Z (N)`),
+   - the `#sha256` checksum, and
+   - add/refresh feature bullets when capabilities change.
+   Also update `docs/README.md` if the APK size/version is mentioned.
 5. **Commit and push** to `origin main` with a descriptive message
    (e.g. `vX.Y.Z: <summary>`). GitHub Pages re-deploys automatically.
 
