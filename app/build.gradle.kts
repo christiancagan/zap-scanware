@@ -11,6 +11,13 @@ val vtApiKey: String =
         ?: System.getenv("VIRUSTOTAL_API_KEY")
         ?: ""
 
+// Base64 X.509 SubjectPublicKeyInfo (ECDSA P-256) used to verify signed threat
+// feeds. Blank => feed signatures are optional (unsigned feeds accepted).
+val feedPublicKey: String =
+    (findProperty("FEED_PUBLIC_KEY") as String?)
+        ?: System.getenv("FEED_PUBLIC_KEY")
+        ?: ""
+
 // APK file name → zap-scanware-<variant>.apk
 base {
     archivesName.set("zap-scanware")
@@ -26,10 +33,11 @@ android {
         applicationId = "com.zapscanware"
         minSdk = 26
         targetSdk = 34
-        versionCode = 18
-        versionName = "1.14.0"
+        versionCode = 19
+        versionName = "1.15.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "VIRUSTOTAL_API_KEY", "\"$vtApiKey\"")
+        buildConfigField("String", "FEED_PUBLIC_KEY", "\"$feedPublicKey\"")
     }
 
     buildTypes {

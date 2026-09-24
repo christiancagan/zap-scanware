@@ -147,6 +147,30 @@ following were implemented in v1.14.0:
   50 → 100 MB and 300 → 500 files.
 - **Tests**: `ThreatScoringTest` locks the scoring thresholds (10 cases).
 
+A follow-up (v1.15.0, see `ENHANCEMENT_PLAN_5.md`) closed the remaining open
+items:
+
+- **Prioritized cloud-lookup queue** (`core/reputation/CloudLookupQueue` +
+  `CloudQueuePolicy`): the device scan scores everything with the free sources,
+  then spends the limited VirusTotal quota on the highest-risk candidates and
+  defers the rest. `ReputationService.check(hash, includeVirusTotal)` and the
+  `vtChecked` cache flag keep local-only verdicts from masking cloud lookups.
+- **Background continuation** (`data/repository/CloudLookupWorker`): a
+  WorkManager worker drains the queue in rate-limited batches, records malicious
+  results to history, notifies, and reschedules while items remain. Shares the
+  singleton queue via `core/reputation/CloudLookupGraph`.
+- **Signed feeds** (`core/signatures/SignatureVerifier`): when
+  `BuildConfig.FEED_PUBLIC_KEY` is set, remote feeds must carry a valid
+  `X-Zap-Signature` ECDSA-P256/SHA-256 header or are rejected. `FeedStatus`
+  exposes `signatureRequired`/`verifiedSources`; `DEFAULT_FEED_URLS` is the
+  operator feed hook.
+- **Broader baseline**: bundled DEX patterns now use
+  `ThreatScoring.ALL_DEX_PATTERNS`; suspicious-domain list adds abused
+  free-DNS/tunneling/paste services.
+- **UI**: device-scan summary shows cloud checked/queued; Settings → Threat
+  intelligence shows VT slots, queue depth, and a clear-queue action.
+- **Tests**: `CloudQueuePolicyTest` (6) and `SignatureVerifierTest` (4).
+
 ## Module Structure
 ```
 MalwareShield/
@@ -156,7 +180,8 @@ MalwareShield/
 │       ├── data/
 │       │   ├── db/ (MalwareShieldDatabase, ScanHistoryDao)
 │       │   ├── entities/ (ScanHistoryEntity)
-│       │   ├── repository/ (MalwareRepository, BackgroundScanWorker)
+│       │   ├── repository/ (MalwareRepository, BackgroundScanWorker,
+│       │   │                CloudLookupWorker)
 │       ├── di/ (AppModule, AppComponent)
 │       ├── domain/
 │       │   └── usecase/ (ScanUseCases)
@@ -194,7 +219,9 @@ MalwareShield/
 │           │   │            RuleCondition, RuleEngine, BundledRules)
 │           │   └── util/ (BytePatternScanner, Entropy, StringExtractor, AnalysisIo)
 │           ├── content/ (ContentCategory, CategoryClassifier, ContentFilter)
-│           ├── reputation/ (ReputationService, ReputationCache, RateLimiter, ReputationVerdict)
+│           ├── reputation/ (ReputationService, ReputationCache, RateLimiter,
+│           │                ReputationVerdict, CloudLookupQueue,
+│           │                CloudLookupGraph, CloudLookupNotifier)
 │           ├── downloads/ (DownloadMonitor, DownloadScanWorker, DownloadScanNotifier)
 │           ├── safebrowse/ (SafeBrowseVpnService, DnsPacket)
 │           ├── perf/ (CacheManager)
@@ -216,6 +243,8 @@ MalwareShield/
 │           ├── scanning/
 │           │   ├── ScanEngine.kt
 │           │   └── ScanResult.kt
+│           ├── signatures/ (SignatureFeedManager, SignatureFeedModels,
+│           │                 SignatureVerifier)
 │           ├── storage/ (PreferenceManager.kt)
 │           └── utils/ (HashUtils.kt)
 ├── core/signatures/ (MalwareSignatures.kt)

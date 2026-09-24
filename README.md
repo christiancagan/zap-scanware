@@ -79,6 +79,19 @@ Dark/Light theme, bottom navigation (Scan + Validate + History), threat badges
 - Opt-in VirusTotal upload for unknown hashes.
 - Wider bounded coverage (32 MB rule scan, 100 MB / 500-file device scan).
 
+### 12. Cloud Queue & Signed Feeds (v1.15.0)
+- **Prioritized cloud-lookup queue** (`CloudLookupQueue`): the device scan
+  spends the limited VirusTotal quota on the highest-risk candidates and defers
+  the rest, instead of silently skipping them.
+- **Background continuation** (`CloudLookupWorker`): a WorkManager job drains the
+  queue in rate-limited batches, records threats to History, and notifies you.
+- **Signed threat feeds**: when `FEED_PUBLIC_KEY` is configured, remote feeds
+  must carry a valid ECDSA-P256 signature (`SignatureVerifier`) or are rejected.
+- **Broader offline baseline**: bundled DEX patterns include high-signal
+  primitives; abused free-DNS/tunneling/paste domains are flagged suspicious.
+- Settings shows VirusTotal slots free, queued lookups, and feed-signature
+  status.
+
 ## Module Structure
 ```
 MalwareShield/
