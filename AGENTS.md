@@ -117,6 +117,36 @@ Format-aware scanning beyond APKs (see `ENHANCEMENT_PLAN.md`):
 - Settings → *Storage & performance* shows sizes and offers manual clear.
 - See `PERFORMANCE.md` for the rules and runbook.
 
+### 16. Detection hardening (QC remediation)
+A malware-detection QC review (see `ENHANCEMENT_PLAN_4.md`) found the scanner
+was a heuristic + cloud-hash triage tool rather than a virus scanner. The
+following were implemented in v1.14.0:
+
+- **Unified threat scoring** (`core/security/ThreatScoring`): DEX/API
+  indicators are now split into *malicious primitives* (dynamic loaders,
+  `Runtime.exec`, root shell, silent install, accessibility/device-admin abuse),
+  *sensitive APIs* (SMS, IMEI/IMSI, contacts, location, camera/mic) and
+  *capabilities* (WebView, sockets, crypto). A single capability is no longer
+  reported CRITICAL — the old logic flagged almost every real app. All DEX
+  analyzers (APK, DEX, JAR, AAB) share this scoring so verdicts are consistent.
+- **YARA rules on the manual APK scan**: `MalwareRepository.scanAPK` now runs
+  `SignatureRuleAnalyzer` (bundled + feed rules), which previously only ran on
+  the generic/device-scan paths. The main "Select APK" flow now matches rules
+  (including EICAR).
+- **Installed-app code analysis**: the deep device scan now runs the full
+  `ScanDispatcher` pipeline on each non-system installed APK, not just
+  permission scoring + hash reputation.
+- **Expanded bundled rules**: `BundledRules` adds Android dropper, premium-SMS,
+  accessibility-abuse, overlay-phishing, device-admin ransomware and silent
+  installer families plus keylogger/ransomware PE heuristics.
+- **Opt-in VirusTotal upload**: unknown files (hash not in feeds/VT) can be
+  submitted for multi-engine analysis via Settings → *Upload unknown files to
+  VirusTotal* (default OFF; requires a VT API key). Fixes the previous gap where
+  novel samples were never submitted and read as "clean".
+- **Wider bounded coverage**: rule scan cap 16 → 32 MB; device-scan file cap
+  50 → 100 MB and 300 → 500 files.
+- **Tests**: `ThreatScoringTest` locks the scoring thresholds (10 cases).
+
 ## Module Structure
 ```
 MalwareShield/
@@ -175,6 +205,7 @@ MalwareShield/
 │           │   └── AuthManager.kt
 │           ├── security/
 │           │   ├── APKAnalyzer.kt
+│           │   ├── ThreatScoring.kt
 │           │   ├── PrivacyCrypto.kt
 │           │   └── URLValidator.kt
 │           ├── network/

@@ -31,13 +31,20 @@ File picker → SHA-256 → APK analysis → VirusTotal lookup → Threat classi
 WorkManager with battery/network constraints
 
 ### 3. APK Static Analysis
-Package metadata, permissions, certificate fingerprint, DEX pattern detection
+Package metadata, permissions, certificate fingerprint, DEX pattern detection,
+and the bundled + feed YARA rule engine. Verdicts use unified threat scoring
+(`ThreatScoring`): malicious primitives (dynamic loaders, `Runtime.exec`, root
+shell, silent install, accessibility/device-admin abuse), sensitive APIs, and
+generic capabilities are weighted so a single WebView/socket is not reported
+malicious.
 
 ### 4. SHA-256 File Hashing
 Streaming 8KB buffer, no full file loading into RAM
 
 ### 5. VirusTotal Integration
-Retrofit-based API, file upload and hash-based report lookup
+Retrofit-based API, hash-based report lookup, and **opt-in** file upload for
+unknown samples (Settings → *Upload unknown files to VirusTotal*, default OFF,
+requires a VT API key). Only hashes leave the device unless upload is enabled.
 
 ### 6. URL/Site Validation
 - **URLValidator**: Validates URL integrity, SSL certificates, domain reputation
@@ -62,6 +69,15 @@ All scan data stored locally only, no telemetry, no external data collection
 
 ### 10. Clean Material Design 3 UI
 Dark/Light theme, bottom navigation (Scan + Validate + History), threat badges
+
+### 11. Detection Hardening (v1.14.0)
+- Unified `ThreatScoring` across APK/DEX/JAR/AAB analyzers (no more
+  "everything is CRITICAL" false positives).
+- YARA rules now run on the manual APK scan path (previously skipped).
+- Deep device scan runs full code analysis on installed (non-system) apps.
+- Expanded bundled Android/PE detection rules.
+- Opt-in VirusTotal upload for unknown hashes.
+- Wider bounded coverage (32 MB rule scan, 100 MB / 500-file device scan).
 
 ## Module Structure
 ```
