@@ -113,6 +113,18 @@ Dark/Light theme, bottom navigation (Scan + Validate + History), threat badges
 - A per-scan JSON audit of every app is stored on the device, and cloud results
   are merged into findings instead of silently dropping apps.
 
+### 15. Durable Hash Index & Feed Health (v1.18.0)
+- Every computed SHA-256 is indexed on-device with its last verdict, so
+  **"Recheck known hashes"** resolves without re-hashing the APK and without
+  re-spending MalwareBazaar/VirusTotal quota (the UI reports how much was
+  reused vs looked up).
+- MalwareBazaar per-hash lookups are now explicit: a revoked Auth-Key is
+  reported as unavailable rather than looking "clean", requests are
+  rate-limited for fair use, and known-clean hashes are negatively cached.
+- The offline MalwareBazaar mirror now **merges** new detections with a 30-day
+  retention instead of forgetting older ones, and offline URL feeds report
+  per-source health and staleness.
+
 ## Module Structure
 ```
 MalwareShield/

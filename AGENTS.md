@@ -213,6 +213,28 @@ See `ENHANCEMENT_PLAN_7.md`. The pipeline is now auditable end to end.
 - **Tests**: `AppScanAuditTest`, `ReputationReadinessTest`,
   `CloudContinuationPolicyTest`, `AppScanAuditPersistenceTest` (112 total).
 
+### 19. Durable hash index, MalwareBazaar per-hash, offline feeds (v1.18.0)
+See `ENHANCEMENT_PLAN_8.md`.
+
+- **Durable hash index** (`core/security/HashIndex`): SHA-256 → package/path/
+  verdict/last-seen stored in `filesDir/hash_index.json` (survives cache clears).
+  `AppScanAudit` now carries `sha256` so a recheck needs no re-hash.
+- **Recheck** (`core/security/RecheckService` + "Recheck known hashes" in the
+  device-scan UI): resolves from the index and skips the network for hashes that
+  already have a terminal verdict; reports reused/looked-up/quota-saved.
+- **MalwareBazaar per-hash**: typed `BazaarOutcome` (Found/NotFound/Unauthorized/
+  RateLimited/Error) — an invalid key is no longer indistinguishable from a
+  clean hash. Added `MalwareBazaarPacer` (fair-use limiter + per-scan budget)
+  and `MalwareBazaarNegativeCache` (7-day negative cache for NotFound).
+- **MalwareBazaar mirror**: merge-with-retention (`MalwareBazaarMirrorPolicy`,
+  30 days / 20k cap) replaces the old full-replace that forgot older hashes;
+  incremental lookback, ETag persistence, failures preserve good data, richer
+  `Status`.
+- **Offline URL feeds**: per-source status (one bad feed no longer masks healthy
+  ones), staleness indicator, and `DEFAULT_FEED_URLS` merged with user feeds.
+- **Tests**: `MalwareBazaarOutcomeTest`, `MalwareBazaarMirrorPolicyTest`,
+  `HashIndexTest`, `MalwareBazaarPacerTest`, `FeedFreshnessTest` (148 total).
+
 ## Module Structure
 ```
 MalwareShield/

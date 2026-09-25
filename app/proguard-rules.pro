@@ -10,8 +10,10 @@
     <fields>;
 }
 
-# Keep persisted per-app scan-audit DTOs (Gson field names).
+# Keep persisted per-app scan-audit and hash-index DTOs (Gson field names).
 -keepclassmembers,allowshrinking,allowobfuscation class com.malwareshield.core.security.AppScan* { <fields>; }
+-keepclassmembers,allowshrinking,allowobfuscation class com.malwareshield.core.security.HashIndex* { <fields>; }
+-keepclassmembers,allowshrinking,allowobfuscation class com.malwareshield.core.reputation.MalwareBazaarNegativeCache* { <fields>; }
 
 # Room: keep entities/DAOs and their schemas.
 -keep,allowshrinking,allowobfuscation class com.malwareshield.data.entities.** { *; }
