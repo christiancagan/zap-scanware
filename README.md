@@ -103,6 +103,16 @@ Dark/Light theme, bottom navigation (Scan + Validate + History), threat badges
 - Settings → Threat intelligence: masked key field, Save/Sync, and live mirror
   count.
 
+### 14. Auditable Deep Scan Results (v1.17.0)
+- Every installed app ends with an explicit state: malicious, suspicious, clean,
+  unverified, queued, deferred, or skipped — with the reason.
+- Device-scan results now show how many apps were fully analyzed vs
+  permission-only, hashed, checked, queued, deferred, or failed, plus any
+  reputation limitations (missing API keys, exhausted VirusTotal quota, stale
+  MalwareBazaar mirror).
+- A per-scan JSON audit of every app is stored on the device, and cloud results
+  are merged into findings instead of silently dropping apps.
+
 ## Module Structure
 ```
 MalwareShield/

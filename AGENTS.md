@@ -188,6 +188,31 @@ lookup was broken. See `ENHANCEMENT_PLAN_6.md`.
   is configured; Settings → Threat intelligence has Save/Sync and a live count.
 - **Tests**: `MalwareBazaarFeedParserTest` (5).
 
+### 18. Deep app-scan completeness (v1.17.0)
+See `ENHANCEMENT_PLAN_7.md`. The pipeline is now auditable end to end.
+
+- **Terminal per-app coverage** (`core/security/AppScanAudit.kt`):
+  `AppAnalysisCoverage` = `FULL` / `PERMISSION_ONLY` / `ANALYSIS_FAILED` /
+  `NOT_ANALYZED`; `AppCloudDisposition` = `NOT_APPLICABLE` / `CHECKED` /
+  `QUEUED` / `DEFERRED` / `FAILED` / `UNAVAILABLE`; `AppScanOutcome` =
+  `MALICIOUS` / `SUSPICIOUS` / `CLEAN` / `UNKNOWN` / `QUEUED` / `DEFERRED` /
+  `SKIPPED`. Every enumerated app gets exactly one audit record.
+- **No silent drops**: `InstalledAppScanner` records packages without
+  `applicationInfo` in `DeviceScanResult.skippedPackages`.
+- **Reputation health** (`core/reputation/ReputationReadiness`): network,
+  VirusTotal key/quota, MalwareBazaar key, and mirror freshness produce
+  `blockingIssues` shown on the device-scan summary.
+- **Honest cloud verdicts**: `ReputationVerdict.vtChecked` now means VirusTotal
+  answered; new `vtLookupFailed` distinguishes failures; both persist through
+  `ReputationCache`. `CloudLookupQueue.DrainReport` reports `failed` /
+  `rateLimited`.
+- **Bounded retries**: `CloudContinuationPolicy.MAX_ATTEMPTS = 10`.
+- **Audit report** (`core/security/AppScanAuditReport.kt`): per-scan JSON in
+  `filesDir/scan-audits/` (newest 20), path exposed via
+  `FullScanResult.auditReportPath`.
+- **Tests**: `AppScanAuditTest`, `ReputationReadinessTest`,
+  `CloudContinuationPolicyTest`, `AppScanAuditPersistenceTest` (112 total).
+
 ## Module Structure
 ```
 MalwareShield/
