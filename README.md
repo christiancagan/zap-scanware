@@ -139,6 +139,24 @@ Dark/Light theme, bottom navigation (Scan + Validate + History), threat badges
   unwired Safe Browsing client, legacy strings/colors/layouts, 13 Gradle deps);
   the APK shrank from 21.3 MB to 19.3 MB.
 
+### 17. Scanner Requirements: Risk Scores, Categories & Incremental Cache (v1.20.0)
+- Every app gets a **0–100 risk score** (static analysis, permissions,
+  certificate, indicators, reputation, VirusTotal) with configurable bands and
+  a clear "evidence, not determination" disclaimer; lone signals can never
+  score High alone.
+- Findings are categorized as **Malware / PUA-PUP / Suspicious / Low
+  Reputation / Unknown**, and tapping any finding opens a detail screen with
+  the score, SHA-256 (+copy for manual VirusTotal lookup), full VirusTotal
+  line, permissions, indicator explanations, assessment, recommended actions,
+  and uninstall/remove/allow.
+- **Incremental scans**: unchanged apps reuse cached verdicts (Room database)
+  instead of re-hashing and re-analyzing; scans can be **cancelled** with
+  partial results; every run is saved to **scan history** (Today/Yesterday by
+  date, openable).
+- High-risk apps trigger a **notification** (tap opens the details) with
+  anti-spam cooldown and a master toggle that is actually enforced; cloud
+  lookups default to wifi-only to save data and battery.
+
 ## Module Structure
 ```
 MalwareShield/

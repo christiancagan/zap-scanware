@@ -263,6 +263,51 @@ See `ENHANCEMENT_PLAN_9.md`.
   truth, coroutines-test, androidTest set). APK shrank 21.3 → 19.3 MB.
 - **Tests**: 180 total, 0 failures.
 
+### 21. Scanner requirements: RiskEngine, categories, incremental Room cache (v1.20.0)
+See `ENHANCEMENT_PLAN_10.md` (assessment: 1 achieved / 9 partial / 7 missing).
+
+- **Room inventory + scan cache + sessions** (DB v3, non-destructive
+  migration): `AppInventoryEntity` (17 fields incl. UID, installer, times,
+  components, cert, SDKs, USER/SYSTEM/UPDATED_SYSTEM), `ScanCacheEntity`
+  (apkHash, version, score, level, VT JSON, analysis version, category),
+  `ScanSessionEntity` (mode, totals per category, COMPLETED/CANCELLED).
+  `AppInventoryCollector` gathers everything Android permits per scan.
+- **Incremental scanning**: unchanged APK + current `ANALYSIS_VERSION` reuses
+  the cached verdict (no analysis, no reputation, no quota). QUICK orders
+  user-installed → previously suspicious → recently updated.
+- **Real cancellation**: retained scan `Job`, Cancel button, `yield()` in all
+  loops, `cancelUniqueWork("cloud_lookup")`, CANCELLED session with partial
+  counts + VIEW RESULTS / SCAN AGAIN.
+- **RiskEngine** (`core/security/RiskEngine`): weighted 0–100 (static 30,
+  perms 15, cert 10, indicators 15, reputation 15, VT 15) with a
+  corroboration cap (one lone signal never reaches High) and configurable
+  bands (Settings, defaults 40/60/80) + disclaimer. `DetectionClassifier`:
+  MALWARE needs feed/Bazaar/VT-quorum/corroborated-Critical; PUA-PUP via
+  adware/tracker/installer hints; SUSPICIOUS/LOW_REPUTATION/UNKNOWN/CLEAN.
+- **VT depth**: suspicious/undetected counts + `last_analysis_date` plumbed
+  through verdict → cache → findings; `VtSummary.display()` renders the
+  required `VirusTotal: 8/70; Malicious=8; Suspicious=1; Undetected=61; Last
+  Analysis=<date>` line; copy-hash button on every finding (ClipboardManager).
+  Thin `VirusTotalRepository` facade over the existing pipeline.
+- **New indicators**: BOOT receivers (single system query + explanation),
+  native-lib inventory + suspicious names, embedded URL/IP mining (2 MB cap),
+  standalone reflection scoring, package-naming (impersonation/entropy),
+  SMS+accessibility+installer combo rule — all explanations, none
+  auto-malicious (categories govern user-visible labels).
+- **UI**: idle Device Status card (persisted session), "Device scan is
+  running" + "Scanned files: X of Y", category summary table + View
+  Result/Done, per-app detail screen (score, hash+copy, VT line, permissions,
+  indicators, assessment, recommended actions, uninstall/remove/allow),
+  history sessions grouped Today/Yesterday/date and openable, notification
+  tap → detail.
+- **Notifications**: `device_threat` channel with the exact high-risk text,
+  shared `NotificationGate` (master toggle now actually enforced + per-key
+  cooldown, default 60 min), tap intents on all notifiers.
+- **Battery**: wifi-only cloud gate (default ON) in `ReputationService`,
+  UNMETERED worker constraints, feed-worker metered retry; analysis cache via
+  the Room gate.
+- **Tests**: 211 total, 0 failures.
+
 ## Module Structure
 ```
 MalwareShield/
