@@ -33,8 +33,8 @@ android {
         applicationId = "com.zapscanware"
         minSdk = 26
         targetSdk = 34
-        versionCode = 22
-        versionName = "1.18.0"
+        versionCode = 23
+        versionName = "1.19.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "VIRUSTOTAL_API_KEY", "\"$vtApiKey\"")
         buildConfigField("String", "FEED_PUBLIC_KEY", "\"$feedPublicKey\"")
@@ -88,21 +88,21 @@ kapt {
 dependencies {
     val composeBom = platform("androidx.compose:compose-bom:2024.01.00")
     implementation(composeBom)
-    androidTestImplementation(composeBom)
 
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
     implementation("androidx.activity:activity-compose:1.8.2")
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
-    implementation("androidx.compose.ui:ui-tooling-preview")
     // Pin material3 to 1.2.0 so it matches compose-animation/ui 1.6.0 from the
     // BOM. A mismatched material3 (1.1.2) + animation-core (1.6.0) crashes
     // CircularProgressIndicator with NoSuchMethodError(KeyframesSpecConfig.at).
     implementation("androidx.compose.material3:material3:1.2.0")
     implementation("androidx.compose.material:material-icons-extended")
-    implementation("androidx.navigation:navigation-compose:2.7.6")
-    implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
+    // NOTE (v1.19.0 cleanup): navigation-compose, hilt-navigation-compose,
+    // ui-tooling-preview, lifecycle-viewmodel-compose and lifecycle-runtime-compose
+    // were removed — navigation is a manual Screen enum, ViewModels are provided
+    // via Hilt @HiltViewModel + by viewModels(), and no @Preview exists.
 
     implementation("com.google.dagger:hilt-android:2.50")
     ksp("com.google.dagger:hilt-compiler:2.50")
@@ -122,8 +122,6 @@ dependencies {
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0")
     // LiveData <-> Compose bridge for HistoryScreen.
     implementation("androidx.compose.runtime:runtime-livedata")
@@ -133,13 +131,9 @@ dependencies {
     // Biometric Authentication
     implementation("androidx.biometric:biometric:1.2.0-alpha04")
 
+    // NOTE (v1.19.0 cleanup): mockito-core, kotlinx-coroutines-test and truth
+    // were removed — the 20+ unit tests use plain JUnit4 asserts. The
+    // androidTest/espresso/ui-test entries were removed too: app/src/androidTest
+    // does not exist.
     testImplementation("junit:junit:4.13.2")
-    testImplementation("org.mockito:mockito-core:5.8.0")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
-    testImplementation("com.google.truth:truth:1.1.5")
-    androidTestImplementation("androidx.test.ext:junit:1.1.5")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
-    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
-    debugImplementation("androidx.compose.ui:ui-tooling")
-    debugImplementation("androidx.compose.ui:ui-test-manifest")
 }

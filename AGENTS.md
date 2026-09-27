@@ -235,6 +235,34 @@ See `ENHANCEMENT_PLAN_8.md`.
 - **Tests**: `MalwareBazaarOutcomeTest`, `MalwareBazaarMirrorPolicyTest`,
   `HashIndexTest`, `MalwareBazaarPacerTest`, `FeedFreshnessTest` (148 total).
 
+### 20. Finding actions, Gson migration, coverage honesty, cleanup (v1.19.0)
+See `ENHANCEMENT_PLAN_9.md`.
+
+- **Remove / Allow on every finding** (`DeviceScanScreen.FindingCard`):
+  `Remove` deletes the file (and forgets its hash in `HashIndex`) or fires the
+  uninstall intent for apps; `Allow` persists a `FindingAllowlist` entry
+  (`filesDir/allowlist.json`, hash primary + package/path fallback) that
+  suppresses the item in future scans, cloud-queue candidates, and rechecks.
+  Audits keep an "allowed" reason; nothing is falsified.
+- **Gson migration**: `ReputationCache`, `CloudLookupQueue`, `MalwareBazaarFeed`,
+  `EventLogger`, `ProviderKeyManager` moved off `org.json` (untestable stubs on
+  JVM) to Gson with pure codecs; 6 new test suites. `SignatureFeedManager`
+  remote parsing stays on org.json (follow-up).
+- **Coverage honesty**: device-scan hero/guide/mode strings now state the
+  bounded truth (QUICK scores apps without hashing; DEEP hashes non-system
+  APKs; storage sweep covers download/media dirs, ≤500 files / ≤100 MB;
+  system/private partitions unreachable without root). `ApkFinder` adds DCIM /
+  WhatsApp / Bluetooth / Movies / Music dirs and reports `truncated`; the
+  result card shows a scope line (walk vs MediaStore-only, cap warning).
+- **Cleanup** (every removal reference-checked): deleted dead `ScanUseCases`,
+  `SafeBrowsingApiService`, `FilePicker` composable, `ScanProgressIndicator`,
+  legacy v2 VT models, orphan `core/`, `activity_main.xml`, 2 drawable icons,
+  placeholder `google-services.json`, `PAGES.md`/`INSTALL.md`; pruned
+  strings/colors; moved the feed fixture to `src/test/resources`; removed 13
+  unused Gradle deps (navigation, compose-tooling, lifecycle-compose, mockito,
+  truth, coroutines-test, androidTest set). APK shrank 21.3 → 19.3 MB.
+- **Tests**: 180 total, 0 failures.
+
 ## Module Structure
 ```
 MalwareShield/
@@ -247,8 +275,6 @@ MalwareShield/
 │       │   ├── repository/ (MalwareRepository, BackgroundScanWorker,
 │       │   │                CloudLookupWorker)
 │       ├── di/ (AppModule, AppComponent)
-│       ├── domain/
-│       │   └── usecase/ (ScanUseCases)
 │       ├── presentation/
 │       │   ├── MainActivity.kt
 │       │   ├── BlockActivity.kt
@@ -302,17 +328,13 @@ MalwareShield/
 │           ├── network/
 │           │   ├── VirusTotalApiService.kt
 │           │   ├── VirusTotalApiModels.kt
-│           │   ├── VirusTotalClient.kt
-│           │   └── SafeBrowsingApiService.kt
+│           │   └── VirusTotalClient.kt
 │           ├── scanning/
 │           │   ├── ScanEngine.kt
 │           │   └── ScanResult.kt
 │           ├── signatures/ (SignatureFeedManager, SignatureFeedModels,
 │           │                 SignatureVerifier, MalwareBazaarFeed)
 │           ├── storage/ (PreferenceManager.kt)
-│           └── utils/ (HashUtils.kt)
-├── core/signatures/ (MalwareSignatures.kt)
-├── core/utils/ (HashUtils.kt)
 ├── logo/ (zap logo.jpg) → All mipmap/drawable as ic_launcher.webp
 ├── build.gradle.kts
 ├── settings.gradle.kts

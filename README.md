@@ -125,6 +125,20 @@ Dark/Light theme, bottom navigation (Scan + Validate + History), threat badges
   retention instead of forgetting older ones, and offline URL feeds report
   per-source health and staleness.
 
+### 16. Finding Actions, Coverage Honesty & Cleanup (v1.19.0)
+- Every scan finding now has **Remove** (deletes the file / uninstalls the app,
+  and forgets its hash so recheck stops reporting it) and **Allow** (suppresses
+  the item in future scans, cloud lookups, and rechecks without deleting
+  anything or falsifying the audit).
+- The device-scan UI states its true scope: QUICK scores apps without hashing,
+  DEEP hashes non-system APKs, the storage sweep covers download/media folders
+  (up to 500 files / 100 MB each), and system/private partitions are
+  unreachable without root. A scope line on every result reports walk vs
+  MediaStore-only and warns when a safety cap truncated the sweep.
+- Removed verified-unused code, resources, and dependencies (dead use-cases,
+  unwired Safe Browsing client, legacy strings/colors/layouts, 13 Gradle deps);
+  the APK shrank from 21.3 MB to 19.3 MB.
+
 ## Module Structure
 ```
 MalwareShield/
