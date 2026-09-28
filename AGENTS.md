@@ -322,8 +322,10 @@ See `ENHANCEMENT_PLAN_10.md` (assessment: 1 achieved / 9 partial / 7 missing).
 - **Tests**: 217 total, 0 failures.
 
 ### 23. Production readiness fixes (v1.22.0)
-- **Release signing**: `signingConfigs.release` added to `app/build.gradle.kts`,
-  reading keys from environment variables or `local.properties`.
+- **Release signing**: `signingConfigs["release"]` added to
+  `app/build.gradle.kts`, reading `KEYSTORE_PATH`, `KEYSTORE_PASSWORD`,
+  `KEY_ALIAS`, `KEY_PASSWORD` from environment variables first, then
+  `local.properties` (fallback keystore path `release-key.jks`).
 - **Network security**: `res/xml/network_security_config.xml` added with
   certificate pinning for VirusTotal and MalwareBazaar.
 - **Biometric security**: `PrivacyCrypto` now uses `setUserAuthenticationRequired(true)`
@@ -342,6 +344,11 @@ See `ENHANCEMENT_PLAN_10.md` (assessment: 1 achieved / 9 partial / 7 missing).
 - **Documentation**: `CHANGELOG.md`, `CONTRIBUTING.md`, `docs/README.md`
   updated with release build instructions.
 - **Version**: versionCode 26, versionName "1.22.0".
+- **Build script (Kotlin DSL)**: `lint {}` replaces the Groovy `lintOptions`
+  block; use `buildTypes { named("release") { ... } }` (a bare `release {}`
+  clashes with the `KotlinSourceSet.release` receiver). JUnit4 logging lives in
+  a top-level `tasks.withType<Test> { testLogging { ... } }`; do **not** call
+  `useJUnitPlatform()` — the unit tests are JUnit4.
 - **Tests**: 217+ total, 0 failures.
 
 ## Module Structure
@@ -434,13 +441,18 @@ MalwareShield/
 │           ├── signatures/ (SignatureFeedManager, SignatureFeedModels
 │           │                 (+ ThreatFeedJson), SignatureVerifier,
 │           │                 MalwareBazaarFeed (+ Parser, MirrorPolicy))
-│           ├── storage/ (PreferenceManager.kt)
+│           └── storage/ (PreferenceManager.kt)
+│       └── androidTest/java/com/malwareshield/core/
+│               (AppInstrumentedTest, ScanScreenInstrumentedTest)
 ├── logo/ (zap logo.jpg) → All mipmap/drawable as ic_launcher.webp
 ├── build.gradle.kts
 ├── settings.gradle.kts
 ├── gradle.properties
 ├── AGENTS.md
-└── README.md
+├── README.md
+├── CHANGELOG.md
+├── CONTRIBUTING.md
+└── docs/ (index.html, README.md, zap-scanware-debug.apk)
 ```
 
 ## Fingerprint Authentication Flow

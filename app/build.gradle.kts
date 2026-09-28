@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -18,6 +20,17 @@ val feedPublicKey: String =
         ?: System.getenv("FEED_PUBLIC_KEY")
         ?: ""
 
+// Release signing keys are read from environment variables first, then from
+// local.properties (git-ignored), so both CI and local builds work.
+val localProperties = Properties()
+rootProject.file("local.properties")
+    .takeIf { it.exists() }
+    ?.inputStream()
+    ?.use { localProperties.load(it) }
+
+fun signingValue(key: String): String =
+    System.getenv(key) ?: localProperties.getProperty(key) ?: ""
+
 // APK file name → zap-scanware-<variant>.apk
 base {
     archivesName.set("zap-scanware")
@@ -29,10 +42,10 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile = file(System.getenv("KEYSTORE_PATH") ?: "release-key.jks")
-            storePassword = System.getenv("KEYSTORE_PASSWORD") ?: ""
-            keyAlias = System.getenv("KEY_ALIAS") ?: ""
-            keyPassword = System.getenv("KEY_PASSWORD") ?: ""
+            storeFile = file(signingValue("KEYSTORE_PATH").ifBlank { "release-key.jks" })
+            storePassword = signingValue("KEYSTORE_PASSWORD")
+            keyAlias = signingValue("KEY_ALIAS")
+            keyPassword = signingValue("KEY_PASSWORD")
         }
     }
 
@@ -54,28 +67,21 @@ android {
     }
 
     testOptions {
-        unitTests.all {
-            useJUnitPlatform()
-            testLogging {
-                events("passed", "failed", "skipped")
-                exceptionFormat "full"
-            }
-        }
         animationsDisabled = true
     }
 
     buildTypes {
-        release {
+        named("release") {
             isMinifyEnabled = true
             isShrinkResources = true
             isDebuggable = false
-            signingConfig = signingConfigs.release
+            signingConfig = signingConfigs["release"]
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
         }
-        debug {
+        named("debug") {
             isDebuggable = true
             applicationIdSuffix = ".debug"
         }
@@ -103,6 +109,19 @@ android {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
+    }
+}
+
+tasks.withType<Test> {
+    testLogging {
+        events("passed", "failed", "skipped")
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+    }
+}
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+    kotlinOptions {
+        freeCompilerArgs += "-Xjsr305=strict"
     }
 }
 
@@ -170,8 +189,8 @@ dependencies {
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     androidTestImplementation("androidx.test.ext:truth:1.5.0")
-    androidTestImplementation("androidx.test.rules:activity-compose:1.5.0")
     androidTestImplementation("androidx.test:core:1.5.0")
     androidTestImplementation("androidx.test:runner:1.5.2")
-    androidTestUtil("androidx.test:rules:1.5.0")
+    androidTestImplementation("androidx.test:rules:1.5.0")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
 }
