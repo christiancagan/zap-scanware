@@ -245,8 +245,7 @@ cancellation keep the UI async and abortable.
   backlog visible).
 - DB migration from v2 → v3 must preserve `scan_history` rows.
 
-## Verification (v1.20.0, filled on implementation)
-- `./gradlew testDebugUnitTest assembleDebug` → BUILD SUCCESSFUL.
+## Verification (v1.20.0, filled on implementation)- `./gradlew testDebugUnitTest assembleDebug` → BUILD SUCCESSFUL.
 - Unit tests: **211 total, 0 failures** (33 suites). New suites:
   `RiskEngineTest` (8), `DetectionClassifierTest` (13), `VtSummaryTest` (4),
   `ThreatIndicatorsTest` (6).
@@ -263,3 +262,12 @@ cancellation keep the UI async and abortable.
   openable; Req 17 exact text + tap + gate + cooldown.
 - Debug APK: `zap-scanware-debug.apk`, v1.20.0 (build 24), 19.4 MB, copied to
   `docs/`.
+
+## Follow-up v1.21.0 (this release)
+- History rows open in the app detail screen (`selectHistoryFinding`;
+  `scan_history.riskScore`, DB v4, non-destructive).
+- `SignatureFeedManager` migrated to the `ThreatFeedJson` Gson codec —
+  zero `org.json` imports remain in production code.
+- Module tree in `AGENTS.md` regenerated from disk.
+- Tests: 217 total (incl. `ThreatFeedJsonTest`), 0 failures on a clean
+  `--rerun-tasks` run. APK v1.21.0 (build 25), 19.4 MB.

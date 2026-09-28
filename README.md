@@ -157,6 +157,14 @@ Dark/Light theme, bottom navigation (Scan + Validate + History), threat badges
   anti-spam cooldown and a master toggle that is actually enforced; cloud
   lookups default to wifi-only to save data and battery.
 
+### 18. History Detail & Final JSON Cleanup (v1.21.0)
+- Tapping any **history row** now opens the same full detail screen as live
+  findings (score, hash, VirusTotal line, indicators, actions), with
+  back-navigation returning to History.
+- The last `org.json` usage (threat-feed parsing) is migrated to Gson, so all
+  persistence and parsing code is JVM-unit-testable; the bundled feed fixture
+  backs the new codec tests.
+
 ## Module Structure
 ```
 MalwareShield/

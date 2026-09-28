@@ -308,6 +308,19 @@ See `ENHANCEMENT_PLAN_10.md` (assessment: 1 achieved / 9 partial / 7 missing).
   the Room gate.
 - **Tests**: 211 total, 0 failures.
 
+### 22. History detail, feed-codec migration, tree refresh (v1.21.0)
+- **History → detail**: every history row (finding list + session views) opens
+  the full app detail screen (`selectHistoryFinding` maps the row back to a
+  `DeviceFinding` + inventory lookup); detail back-navigation returns to the
+  originating tab. `scan_history` gains `riskScore` (DB v4, non-destructive)
+  so old rows render scores too.
+- **org.json fully eliminated** from production: `SignatureFeedManager`
+  remote parsing + cache now use the pure `ThreatFeedJson` Gson codec
+  (identical format behavior incl. legacy v1 acceptance), tested against the
+  real `sample-threat-feed.json` fixture (`ThreatFeedJsonTest`, 6 cases).
+- **Module tree refreshed** from disk (was listing long-removed auth screens).
+- **Tests**: 217 total, 0 failures.
+
 ## Module Structure
 ```
 MalwareShield/
@@ -315,29 +328,27 @@ MalwareShield/
 │   └── src/main/java/com/malwareshield/
 │       ├── MalwareShieldApp.kt
 │       ├── data/
-│       │   ├── db/ (MalwareShieldDatabase, ScanHistoryDao)
-│       │   ├── entities/ (ScanHistoryEntity)
-│       │   ├── repository/ (MalwareRepository, BackgroundScanWorker,
-│       │   │                CloudLookupWorker)
+│       │   ├── db/ (MalwareShieldDatabase v4)
+│       │   ├── dao/ (ScanHistoryDao, AppInventoryDao, ScanCacheDao, ScanSessionDao)
+│       │   ├── entities/ (ScanHistoryEntity, AppInventoryEntity, ScanCacheEntity,
+│       │   │              ScanSessionEntity)
+│       │   ├── repository/ (MalwareRepository, VirusTotalRepository,
+│       │   │                BackgroundScanWorker, CloudLookupWorker,
+│       │   │                ScheduledScanWorker, SignatureFeedWorker)
 │       ├── di/ (AppModule, AppComponent)
 │       ├── presentation/
 │       │   ├── MainActivity.kt
 │       │   ├── BlockActivity.kt
-│       │   ├── screens/
-│       │   │   ├── ScanScreen.kt
-│       │   │   ├── HistoryScreen.kt
-│       │   │   └── URLValidatorScreen.kt
+│       │   ├── screens/ (ScanScreen, DeviceScanScreen, AppDetailScreen,
+│       │   │            HistoryScreen, URLValidatorScreen, DashboardScreen,
+│       │   │            SettingsScreen, ScheduleScreen, GuideScreen,
+│       │   │            ProviderKeyScreen, LogViewerScreen, ApkFinderScreen)
 │       │   ├── ui/
-│       │   │   ├── auth/
-│       │   │   │   ├── LoginScreen.kt
-│       │   │   │   ├── RegisterScreen.kt
-│       │   │   │   └── BiometricIndicator.kt
-│       │   │   ├── components/ (UIComponents)
+│       │   │   ├── auth/ (BiometricGateScreen, BiometricIndicator)
+│       │   │   ├── components/ (UIComponents, ModernComponents, LogoBackground)
 │       │   │   └── theme/ (Theme)
-│       │   └── viewmodel/
-│       │       ├── AuthViewModel.kt
-│       │       ├── MalwareScannerViewModel.kt
-│       │       └── HistoryViewModel.kt
+│       │   └── viewmodel/ (Auth, MalwareScanner, History, Settings, Dashboard,
+│       │       │            Provider, Schedule, Log, UrlScan, ApkFinder, DeviceScan)
 │       └── core/
 │           ├── analysis/
 │           │   ├── FileType.kt
@@ -355,10 +366,16 @@ MalwareShield/
 │           │   └── util/ (BytePatternScanner, Entropy, StringExtractor, AnalysisIo)
 │           ├── content/ (ContentCategory, CategoryClassifier, ContentFilter)
 │           ├── reputation/ (ReputationService, ReputationCache, RateLimiter,
-│           │                ReputationVerdict, CloudLookupQueue,
-│           │                CloudLookupGraph, CloudLookupNotifier)
+│           │                ReputationVerdict + VtSummary, CloudLookupQueue,
+│           │                CloudLookupGraph, CloudLookupNotifier,
+│           │                CloudContinuationPolicy, MalwareBazaarPacer,
+│           │                MalwareBazaarNegativeCache, ReputationReadiness)
 │           ├── downloads/ (DownloadMonitor, DownloadScanWorker, DownloadScanNotifier)
+│           ├── logging/ (EventLogger, SecurityEvent + EventJson, LogRedactor)
+│           ├── notifications/ (NotificationGate, DeviceThreatNotifier)
+│           ├── providers/ (ProviderKeyManager, SignatureProvider + ProviderKeysFile)
 │           ├── safebrowse/ (SafeBrowseVpnService, DnsPacket)
+│           ├── scheduling/ (ScanScheduler, ScheduledScanWorker)
 │           ├── perf/ (CacheManager)
 │           ├── auth/
 │           │   ├── BiometricAuthenticator.kt
@@ -367,18 +384,33 @@ MalwareShield/
 │           │   └── AuthManager.kt
 │           ├── security/
 │           │   ├── APKAnalyzer.kt
-│           │   ├── ThreatScoring.kt
+│           │   ├── ApkFinder.kt
+│           │   ├── AppInventoryCollector.kt
+│           │   ├── AppScanAudit.kt (+ Report, Store)
+│           │   ├── DetectionCategory.kt (+ Classifier)
+│           │   ├── DeviceFinding.kt (+ ScanProgressInfo, FullScanResult)
+│           │   ├── FindingAllowlist.kt
+│           │   ├── FullDeviceScanner.kt
+│           │   ├── HashIndex.kt
+│           │   ├── InstalledAppScan.kt
+│           │   ├── InstalledAppScanner.kt
 │           │   ├── PrivacyCrypto.kt
+│           │   ├── RecheckService.kt
+│           │   ├── RiskEngine.kt
+│           │   ├── ScanMode.kt
+│           │   ├── ThreatScoring.kt
+│           │   ├── UrlGuardAccessibilityService.kt
 │           │   └── URLValidator.kt
 │           ├── network/
-│           │   ├── VirusTotalApiService.kt
 │           │   ├── VirusTotalApiModels.kt
-│           │   └── VirusTotalClient.kt
+│           │   ├── VirusTotalClient.kt (+ VirusTotalApiService)
+│           │   └── MalwareBazaarClient.kt (+ ApiService, BazaarOutcome)
 │           ├── scanning/
 │           │   ├── ScanEngine.kt
 │           │   └── ScanResult.kt
-│           ├── signatures/ (SignatureFeedManager, SignatureFeedModels,
-│           │                 SignatureVerifier, MalwareBazaarFeed)
+│           ├── signatures/ (SignatureFeedManager, SignatureFeedModels
+│           │                 (+ ThreatFeedJson), SignatureVerifier,
+│           │                 MalwareBazaarFeed (+ Parser, MirrorPolicy))
 │           ├── storage/ (PreferenceManager.kt)
 ├── logo/ (zap logo.jpg) → All mipmap/drawable as ic_launcher.webp
 ├── build.gradle.kts
