@@ -5,6 +5,38 @@ All notable changes to MalwareShield are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.23.0] - 2026-09-28
+
+### Added
+- Confirmation dialog before destructive finding actions (Delete file /
+  Uninstall app) on the Device Scan result list and the app detail screen.
+- Explicit finding action labels: **Uninstall** for apps, **Delete** for files
+  (previously a single "Remove").
+- Prominent "File scanning is limited" warning and a post-scan coverage warning
+  when "All files access" is not granted.
+- Successful-delete confirmation and clearer failure guidance on the file
+  delete path.
+
+### Changed
+- Device Scan controls consolidated: the "Scan mode" chips (Quick/Deep) are the
+  single mode selector and the hero button is the single scan trigger. The
+  duplicate "Quick Scan / Full Scan" buttons on the Device Status card are gone.
+- Device Status / result labels now separate **apps** from **files** instead of
+  summing them under "Files scanned".
+- Progress text uses "Scanned X of Y" (phase-aware) rather than "Scanned files".
+- "All files access" state refreshes on screen resume, so granting it in system
+  Settings updates the UI without a restart.
+- File deletion also removes the MediaStore row (best-effort) and treats an
+  already-deleted file as success.
+- `versionCode`: 26 → 27
+- `versionName`: "1.22.0" → "1.23.0"
+
+### Fixed
+- Device scan appearing stuck at a low file count (e.g. "28 files"): the storage
+  sweep only sees app-visible files when "All files access" is off. The UI now
+  explains this and prompts for the permission; installed apps were always
+  counted separately (e.g. 93 apps + N files).
+
 ## [1.22.0] - 2026-09-28
 
 ### Added

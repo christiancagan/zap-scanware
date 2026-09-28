@@ -351,6 +351,30 @@ See `ENHANCEMENT_PLAN_10.md` (assessment: 1 achieved / 9 partial / 7 missing).
   `useJUnitPlatform()` — the unit tests are JUnit4.
 - **Tests**: 217+ total, 0 failures.
 
+### 24. Device Scan UX: coverage honesty, single control, destructive actions (v1.23.0)
+- **Coverage diagnosis**: a device scan showing a low file count (e.g. "28
+  files") is almost always because **"All files access" is off**. With scoped
+  storage, `ApkFinder.findScanTargets()` skips the filesystem walk and falls
+  back to MediaStore, which exposes only app-visible files. Installed apps are
+  enumerated separately (e.g. 93 apps + 28 visible files), so the totals are
+  correct but were mislabeled.
+- **Honest UI**: `DeviceScanScreen` shows a prominent red "File scanning is
+  limited" callout before the scan and a post-scan warning that names the
+  visible file count; the Device Status card now shows "Apps scanned: X · Files
+  scanned: Y · Mode: …" instead of a summed "Files scanned".
+- **Single control**: the "Scan mode" Quick/Deep chips set the mode and the hero
+  "Scan this device" button is the only trigger. The duplicate Quick Scan / Full
+  Scan buttons on the Device Status card were removed.
+- **Permission refresh**: a `LifecycleEventObserver` on `ON_RESUME` calls
+  `refreshAccess()`, so returning from system Settings updates the prompt.
+- **Destructive actions**: finding cards and `AppDetailScreen` label the action
+  **Uninstall** (apps) or **Delete** (files) and require an `AlertDialog`
+  confirmation. File delete in `DeviceScanViewModel.removeFinding` treats an
+  already-missing file as success, best-effort deletes the MediaStore row, drops
+  the hash from `HashIndex`, and reports clear failure guidance (grant All files
+  access) when the OS refuses.
+- **Version**: versionCode 27, versionName "1.23.0".
+
 ## Module Structure
 ```
 MalwareShield/
