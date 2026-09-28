@@ -5,6 +5,29 @@ All notable changes to MalwareShield are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.24.0] - 2026-09-28
+
+### Changed
+- **One-pass file reads across the scan pipeline.** New `FileDigestReader`
+  computes a file's SHA-256 and its YARA head (≤ 32 MB) in a single streaming
+  pass. `ScanDispatcher` accepts the digest and `SignatureRuleAnalyzer` matches
+  the in-memory head instead of re-reading the file, so the device scan
+  (apps + storage sweep), the manual APK scan and download scanning no longer
+  read each file once to hash it and again for the signature scan.
+- **Merged the two APKAnalyzer zip walks.** `collectThreats` (DEX signature
+  patterns) and `collectPackageSignals` (native libs + embedded URL/IP mining)
+  were two separate `ZipFile` passes over the same `.dex` entries; they are now
+  one pass, halving DEX I/O per APK.
+- `MalwareRepository.scanAPK` runs static analysis concurrently with the
+  in-memory rule scan (the file itself is read once).
+- `versionCode`: 29 → 30
+- `versionName`: "1.23.2" → "1.24.0"
+
+### Tests
+- `FileDigestReaderTest` locks the single-pass contract: SHA-256 equals the
+  existing hash function, the head is correctly bounded, and unreadable files
+  fail closed.
+
 ## [1.23.2] - 2026-09-28
 
 ### Fixed

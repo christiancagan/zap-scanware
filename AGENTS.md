@@ -406,6 +406,26 @@ See `ENHANCEMENT_PLAN_10.md` (assessment: 1 achieved / 9 partial / 7 missing).
   `ReputationCacheTest`.
 - **Version**: versionCode 29, versionName "1.23.2".
 
+### 26. Single-pass file reads (v1.24.0)
+- **`core/analysis/FileDigest.kt`**: `FileDigest(sha256, head)` and
+  `FileDigestReader.read(file, headLimitBytes)` — one 64 KB-chunk streaming pass
+  that computes SHA-256 and retains the first `headLimitBytes` for rule
+  matching. Fail-closed (`FileDigest.EMPTY`).
+- **`ScanDispatcher.dispatch(..., digest)` / `dispatchMember(..., digest)`**:
+  when a digest is supplied, `SignatureRuleAnalyzer.analyzeHead(head, size, type)`
+  runs on the already-read head instead of re-reading the file. Callers that do
+  not pass a digest behave exactly as before.
+- **`APKAnalyzer.collectSignals`**: one `ZipFile` pass collecting DEX signature
+  matches, `.so` names, and embedded URLs/IPs (caps: 100 MB DEX/entry for
+  patterns, 2 MB DEX total for strings). Replaces the old two-pass
+  `collectThreats` + `collectPackageSignals`.
+- **Call sites using one digest per file**: `FullDeviceScanner` (app + file
+  loops), `MalwareRepository.scanAPK` / `scanGenericFile`, `DownloadScanWorker`.
+  The cached-app gate still hashes first (required) and now reuses that digest
+  for analysis.
+- **Tests**: `FileDigestReaderTest` (6).
+- **Version**: versionCode 30, versionName "1.24.0".
+
 ## Module Structure
 ```
 MalwareShield/
@@ -440,6 +460,7 @@ MalwareShield/
 │           │   ├── FileTypeIdentifier.kt
 │           │   ├── AnalysisReport.kt
 │           │   ├── FileAnalyzer.kt
+│           │   ├── FileDigest.kt (FileDigest + FileDigestReader)
 │           │   ├── ScanDispatcher.kt
 │           │   ├── analyzers/ (AndroidPackage, ArchivePackage, Aab, Dex, Jar,
 │           │   │               Pe, Script, Archive, Document, SignatureRule,
