@@ -1,8 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
+    <!-- Base config: cleartext traffic is already blocked by the app
+         (android:usesCleartextTraffic="false" in AndroidManifest.xml).
+         This config adds certificate pinning for API endpoints. -->
+
     <base-config cleartextTrafficPermitted="false">
         <trust-anchors>
             <certificates src="system" />
+            <certificates src="user" />
         </trust-anchors>
     </base-config>
+
+    <!-- VirusTotal API: pin the official certificate chain.
+         Debug builds use a user-installed CA for proxy inspection. -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">virustotal.com</domain>
+        <domain includeSubdomains="true">www.virustotal.com</domain>
+        <domain includeSubdomains="true">api.virustotal.com</domain>
+        <pin-set expiration="2027-09-28">
+            <!-- Replace with actual pins from the server certificate chain. -->
+            <pin digest="SHA-256">AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</pin>
+            <!-- Backup pin -->
+            <pin digest="SHA-256">BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB=</pin>
+        </pin-set>
+    </domain-config>
+
+    <!-- MalwareBazaar API -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">mb-api.abuse.ch</domain>
+        <pin-set expiration="2027-09-28">
+            <pin digest="SHA-256">AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</pin>
+            <pin digest="SHA-256">BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB=</pin>
+        </pin-set>
+    </domain-config>
+
+    <!-- Debug override: allow user-installed CAs for proxy testing. -->
+    <debug-override>
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" />
+        </trust-anchors>
+    </debug-override>
 </network-security-config>

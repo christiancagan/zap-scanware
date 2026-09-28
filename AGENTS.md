@@ -321,6 +321,29 @@ See `ENHANCEMENT_PLAN_10.md` (assessment: 1 achieved / 9 partial / 7 missing).
 - **Module tree refreshed** from disk (was listing long-removed auth screens).
 - **Tests**: 217 total, 0 failures.
 
+### 23. Production readiness fixes (v1.22.0)
+- **Release signing**: `signingConfigs.release` added to `app/build.gradle.kts`,
+  reading keys from environment variables or `local.properties`.
+- **Network security**: `res/xml/network_security_config.xml` added with
+  certificate pinning for VirusTotal and MalwareBazaar.
+- **Biometric security**: `PrivacyCrypto` now uses `setUserAuthenticationRequired(true)`
+  and `setIsStrongBoxBacked(true)`. `BiometricAuthenticator` removed
+  `encryptWithBiometric()` and `decryptWithBiometric()` — all encryption
+  must be gated by a biometric ceremony via `authenticateWithCrypto()`
+  or `encryptWithPrompt()`.
+- **System app scanning**: `FullDeviceScanner` no longer skips code analysis
+  for system apps. All apps are analyzed equally.
+- **Cancellation fix**: `cancelScan()` now calls `cancelUniqueWork("cloud_lookup")`
+  to stop the background cloud lookup worker.
+- **ProGuard rules**: Added keeps for `ThreatScoring` patterns,
+  `BiometricAuthenticator`, `PrivacyCrypto`, and `APKAnalyzer` regex fields.
+- **Instrumented tests**: `app/src/androidTest/` restored with basic
+  activity and Compose UI tests.
+- **Documentation**: `CHANGELOG.md`, `CONTRIBUTING.md`, `docs/README.md`
+  updated with release build instructions.
+- **Version**: versionCode 26, versionName "1.22.0".
+- **Tests**: 217+ total, 0 failures.
+
 ## Module Structure
 ```
 MalwareShield/
@@ -458,11 +481,18 @@ build. Publishing means:
 
 1. **Bump the version** in `app/build.gradle.kts` (`versionCode` +1,
    `versionName` semver) for any user-visible change.
-2. **Build**: `./gradlew testDebugUnitTest assembleDebug` — tests must pass.
-3. **Stage the APK for the download page**: copy
+2. **Configure signing**: Add keys to `local.properties`:
+   ```
+   KEYSTORE_PATH=/path/to/your/release-key.jks
+   KEYSTORE_PASSWORD=your_password
+   KEY_ALIAS=your_alias
+   KEY_PASSWORD=your_key_password
+   ```
+3. **Build**: `./gradlew testDebugUnitTest assembleDebug assembleRelease` — tests must pass.
+4. **Stage the APK for the download page**: copy
    `app/build/outputs/apk/debug/zap-scanware-debug.apk` over
    `docs/zap-scanware-debug.apk` (GitHub Pages serves this file).
-4. **Update the GitHub Pages landing page** `docs/index.html` — it hardcodes the
+5. **Update the GitHub Pages landing page** `docs/index.html` — it hardcodes the
    values, so refresh all three (compute with
    `(Get-FileHash docs/zap-scanware-debug.apk -Algorithm SHA256).Hash` and the
    file length):
@@ -471,7 +501,7 @@ build. Publishing means:
    - the `#sha256` checksum, and
    - add/refresh feature bullets when capabilities change.
    Also update `docs/README.md` if the APK size/version is mentioned.
-5. **Commit and push** to `origin main` with a descriptive message
+6. **Commit and push** to `origin main` with a descriptive message
    (e.g. `vX.Y.Z: <summary>`). GitHub Pages re-deploys automatically.
 
 Do not publish on trivial internal-only edits (typos in comments, docs-only

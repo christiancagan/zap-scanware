@@ -15,6 +15,17 @@
 -keepclassmembers,allowshrinking,allowobfuscation class com.malwareshield.core.security.HashIndex* { <fields>; }
 -keepclassmembers,allowshrinking,allowobfuscation class com.malwareshield.core.reputation.MalwareBazaarNegativeCache* { <fields>; }
 
+# Keep ThreatScoring pattern sets (referenced via reflection in analyzers).
+-keepclassmembers,allowshrinking,allowobfuscation class com.malwareshield.core.security.ThreatScoring {
+    <staticfields>;
+}
+
+# Keep suspiciousPackageName and shannon for reflection-based detection.
+-keepclassmembers,allowshrinking,allowobfuscation class com.malwareshield.core.security.ThreatScoring {
+    java.lang.String suspiciousPackageName(java.lang.String, boolean);
+    double shannon(java.lang.String);
+}
+
 # Room: keep entities/DAOs and their schemas.
 -keep,allowshrinking,allowobfuscation class com.malwareshield.data.entities.** { *; }
 -keep,allowshrinking,allowobfuscation interface com.malwareshield.data.dao.** { *; }
@@ -31,5 +42,22 @@
 # Coroutines / WorkManager.
 -dontwarn kotlinx.coroutines.**
 -keep class androidx.work.** { *; }
+
+# Keep BiometricAuthenticator and PrivacyCrypto for Keystore access.
+-keepclassmembers,allowshrinking,allowobfuscation class com.malwareshield.core.auth.BiometricAuthenticator { *; }
+-keepclassmembers,allowshrinking,allowobfuscation class com.malwareshield.core.security.PrivacyCrypto { *; }
+
+# Keep Android Keystore key aliases.
+-keepclassmembers class * {
+    @android.security.keystore.KeyGenParameterSpec <init>(...);
+}
+
+# Keep URL/IP regex patterns used in APKAnalyzer.
+-keepclassmembers,allowshrinking,allowobfuscation class com.malwareshield.core.security.APKAnalyzer {
+    static final java.util.regex.Regex URL_REGEX;
+    static final java.util.regex.Regex IP_REGEX;
+    static final java.util.Set SUSPICIOUS_SO_HINTS;
+    static final java.util.Set BENIGN_URL_HOSTS;
+}
 
 -keepattributes Signature,RuntimeVisibleAnnotations,EnclosingMethod,InnerClasses

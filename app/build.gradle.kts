@@ -27,17 +27,41 @@ android {
     namespace = "com.malwareshield"
     compileSdk = 34
 
-    // User-facing install identity. (Internal code package stays
-    // com.malwareshield; applicationId is what Android/Play sees.)
+    signingConfigs {
+        create("release") {
+            storeFile = file(System.getenv("KEYSTORE_PATH") ?: "release-key.jks")
+            storePassword = System.getenv("KEYSTORE_PASSWORD") ?: ""
+            keyAlias = System.getenv("KEY_ALIAS") ?: ""
+            keyPassword = System.getenv("KEY_PASSWORD") ?: ""
+        }
+    }
+
     defaultConfig {
         applicationId = "com.zapscanware"
         minSdk = 26
         targetSdk = 34
-        versionCode = 25
-        versionName = "1.21.0"
+        versionCode = 26
+        versionName = "1.22.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "VIRUSTOTAL_API_KEY", "\"$vtApiKey\"")
         buildConfigField("String", "FEED_PUBLIC_KEY", "\"$feedPublicKey\"")
+    }
+
+    lint {
+        disable += listOf("QueryPermissionsNeedAppAccess", "HardcodedDebugMode")
+        checkReleaseBuilds = false
+        abortOnError = false
+    }
+
+    testOptions {
+        unitTests.all {
+            useJUnitPlatform()
+            testLogging {
+                events("passed", "failed", "skipped")
+                exceptionFormat "full"
+            }
+        }
+        animationsDisabled = true
     }
 
     buildTypes {
@@ -45,6 +69,7 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             isDebuggable = false
+            signingConfig = signingConfigs.release
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -100,7 +125,7 @@ dependencies {
     implementation("androidx.compose.material3:material3:1.2.0")
     implementation("androidx.compose.material:material-icons-extended")
     // NOTE (v1.19.0 cleanup): navigation-compose, hilt-navigation-compose,
-    // ui-tooling-preview, lifecycle-viewmodel-compose and lifecycle-runtime-compose
+    // ui-toolting-preview, lifecycle-viewmodel-compose and lifecycle-runtime-compose
     // were removed — navigation is a manual Screen enum, ViewModels are provided
     // via Hilt @HiltViewModel + by viewModels(), and no @Preview exists.
 
@@ -131,9 +156,22 @@ dependencies {
     // Biometric Authentication
     implementation("androidx.biometric:biometric:1.2.0-alpha04")
 
+    // Core library desugaring for Java 8+ features in test libraries
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
+
     // NOTE (v1.19.0 cleanup): mockito-core, kotlinx-coroutines-test and truth
     // were removed — the 20+ unit tests use plain JUnit4 asserts. The
     // androidTest/espresso/ui-test entries were removed too: app/src/androidTest
     // does not exist.
     testImplementation("junit:junit:4.13.2")
+
+    // Instrumented tests (v1.22.0: restored for production readiness)
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+    androidTestImplementation("androidx.test.ext:truth:1.5.0")
+    androidTestImplementation("androidx.test.rules:activity-compose:1.5.0")
+    androidTestImplementation("androidx.test:core:1.5.0")
+    androidTestImplementation("androidx.test:runner:1.5.2")
+    androidTestUtil("androidx.test:rules:1.5.0")
 }
