@@ -5,6 +5,19 @@ All notable changes to MalwareShield are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.23.1] - 2026-09-28
+
+### Fixed
+- **Result and History screens not scrollable**: a `LazyColumn` was nested below
+  other content inside a non-scrolling `Column`, so the list overflowed past the
+  bottom of the screen with no way to scroll. `DeviceScanScreen`, `HistoryScreen`,
+  `LogViewerScreen` and `ApkFinderScreen` now each use a single top-level
+  `LazyColumn` so the whole page scrolls and the lists stay lazy.
+
+### Changed
+- `versionCode`: 27 → 28
+- `versionName`: "1.23.0" → "1.23.1"
+
 ## [1.23.0] - 2026-09-28
 
 ### Added

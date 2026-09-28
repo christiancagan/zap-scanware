@@ -375,6 +375,20 @@ See `ENHANCEMENT_PLAN_10.md` (assessment: 1 achieved / 9 partial / 7 missing).
   access) when the OS refuses.
 - **Version**: versionCode 27, versionName "1.23.0".
 
+### 24b. Scrollable screens fix (v1.23.1)
+- **Root cause**: several screens placed a `LazyColumn(modifier = fillMaxSize())`
+  *after* other content inside a plain `Column`. The lazy list was measured at the
+  full parent height, so it ran off the bottom of the non-scrolling column and
+  could not be scrolled.
+- **Fix**: `DeviceScanScreen` (results), `HistoryScreen`, `LogViewerScreen` and
+  `ApkFinderScreen` now use a **single top-level `LazyColumn`**, with header
+  sections as `item {}` and lists as `items(...)`. `HistoryScreen` computes its
+  grouped sessions outside the (non-composable) `LazyListScope` and keys items by
+  id. Dialogs remain outside the list.
+- **Rule**: never nest a `LazyColumn(fillMaxSize())` under non-weighted content in
+  a `Column`. Either use one root `LazyColumn`, or give the list `Modifier.weight(1f)`.
+- **Version**: versionCode 28, versionName "1.23.1".
+
 ## Module Structure
 ```
 MalwareShield/
