@@ -389,6 +389,23 @@ See `ENHANCEMENT_PLAN_10.md` (assessment: 1 achieved / 9 partial / 7 missing).
   a `Column`. Either use one root `LazyColumn`, or give the list `Modifier.weight(1f)`.
 - **Version**: versionCode 28, versionName "1.23.1".
 
+### 25. Performance & hot-path hardening (v1.23.2)
+- **Batched durable writes**: `HashIndex.record`/`updateVerdict` and
+  `ReputationCache.put` take `persist: Boolean = true`. Bulk callers
+  (`FullDeviceScanner`, `CloudLookupQueue.drain`, `RecheckService`) pass
+  `false` and call `flush()` once. Never serialize the whole JSON file per item.
+- **Bulk history insert**: `ScanHistoryDao.insertScans` +
+  `MalwareRepository.recordDeviceFindings`; `DeviceScanViewModel.persistSession`
+  writes all findings in one Room transaction.
+- **Preference snapshot**: `ReputationService.prefs()` TTL-caches the DataStore
+  reads used per hash on the scan hot path.
+- **Lazy screens**: `ScanScreen` now uses a single root `LazyColumn`.
+- **Removed dead code**: `ApkFinderScreen.kt` (never navigated to; `ScanScreen`
+  already provides find-and-scan).
+- **Tests**: added batched-persistence cases to `HashIndexTest` and
+  `ReputationCacheTest`.
+- **Version**: versionCode 29, versionName "1.23.2".
+
 ## Module Structure
 ```
 MalwareShield/
