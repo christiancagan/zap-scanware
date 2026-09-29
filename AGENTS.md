@@ -475,6 +475,23 @@ See `ENHANCEMENT_PLAN_10.md` (assessment: 1 achieved / 9 partial / 7 missing).
 - **Tests**: `PasswordHasherTest` (6), `ConfigLockManagerTest` (5).
 - **Version**: versionCode 32, versionName "1.25.0".
 
+### 29. Fix accessibility-guard UI freeze (v1.25.1)
+- **Bug**: v1.25.0 made `UrlGuardAccessibilityService` match bare domains, so
+  every content/text-change event (dozens/sec) triggered a full
+  `AccessibilityNodeInfo` traversal + `runBlocking` DataStore evaluation per
+  host on the UI process with an unbounded `Executors.newSingleThreadExecutor`
+  queue → CPU saturation, app unresponsive.
+- **Fix**: throttle to `MIN_SCAN_INTERVAL_MS = 800`, coalesce with an
+  `AtomicBoolean` (drop events while a scan is queued), skip our own package,
+  cap `MAX_HOSTS_PER_SCAN = 12`, cache per-host verdicts for
+  `HOST_CACHE_TTL_MS = 60s`, wrap `inspect` in try/catch, and move
+  `rootInActiveWindow` after the throttle check (one binder call per scan).
+- **`ContentFilter`** caches the user policy for 5 s (`POLICY_TTL_MS`) so hot
+  callers no longer read DataStore per domain.
+- **Settings** uses `EditableSettings()` as a fallback so it never shows an
+  indefinite spinner.
+- **Version**: versionCode 33, versionName "1.25.1".
+
 ## Module Structure
 ```
 MalwareShield/

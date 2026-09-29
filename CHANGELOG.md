@@ -5,6 +5,29 @@ All notable changes to MalwareShield are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.25.1] - 2026-09-28
+
+### Fixed
+- **App unresponsive / UI not loading when the accessibility guard was on.**
+  The v1.25.0 change that let the URL guard match bare domains turned every
+  accessibility event (`TYPE_WINDOW_CONTENT_CHANGED` / `TYPE_VIEW_TEXT_CHANGED`,
+  which fire many times per second) into a full node-tree traversal plus
+  `runBlocking` DataStore lookups for every host — on the UI process, with an
+  unbounded worker queue. That saturated the CPU and froze the app.
+  `UrlGuardAccessibilityService` now throttles scans (≥ 800 ms apart), runs one
+  scan at a time (coalescing/`AtomicBoolean`), skips Zap Scanware's own window,
+  caps hosts per pass (12), caches each host's verdict for 60 s, catches stale
+  nodes, and only calls `rootInActiveWindow` once per throttled scan.
+- **`ContentFilter`** now caches the user policy (enabled / categories /
+  custom list / action) for 5 s so the DNS proxy and accessibility guard stop
+  reading DataStore on every domain.
+- **Settings** renders immediately even before its snapshot loads (no
+  indefinite spinner).
+
+### Changed
+- `versionCode`: 32 → 33
+- `versionName`: "1.25.0" → "1.25.1"
+
 ## [1.25.0] - 2026-09-28
 
 ### Fixed
