@@ -5,6 +5,44 @@ All notable changes to MalwareShield are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.25.0] - 2026-09-28
+
+### Fixed
+- **Safe Browse no longer breaks connectivity.** The DNS proxy used a single
+  shared upstream socket with no transaction-id matching, silently dropped any
+  query whose upstream timed out, and handled only IPv4/UDP. A single stalled
+  lookup could freeze the whole device's DNS (apps like Google reporting "not
+  responding"). Every query is now resolved on its own protected socket, matched
+  by DNS id, retried across three resolvers, and **always answered** (SERVFAIL
+  on failure) so clients fail over instead of hanging. A small worker pool keeps
+  DNS responsive under load.
+- **Content filter now actually blocks.** The default action was `NOTIFY`
+  (only a notification) and the accessibility service required a
+  `http(s://)`-prefixed URL, so bare browser domains (`pornhub.com`) never
+  matched — nothing was blocked. The default action is now `BLOCK`, the
+  accessibility service matches bare domains, and the custom blocklist always
+  blocks once filtering is on (no chip needed). Category selections now default
+  to all categories so enabling the filter is immediately effective.
+
+### Added
+- **Settings password + Save (config lock).** Settings changes are now staged;
+  a Save button enables only when something changed. The first save creates a
+  password (PBKDF2-HMAC-SHA256, 120k iterations, random salt) stored in the new
+  `config_lock` Room table (DB v4 → v5, non-destructive). Later saves and
+  destructive actions require it. A correct entry unlocks for 5 minutes
+  in-memory; 5 wrong attempts lock out for a minute. **No recovery** — forgetting
+  the password requires clearing app data (stated in the dialog). App
+  **Uninstall** and file **Delete** now prompt for the password when locked.
+- `PasswordHasher`, `ConfigLockManager`, `ConfigLockDao`, `ConfigLockEntity`.
+- Settings UI: blue-tinted section panels and blue action buttons.
+
+### Changed
+- `versionCode`: 31 → 32
+- `versionName`: "1.24.1" → "1.25.0"
+
+### Tests
+- `PasswordHasherTest` (6) and `ConfigLockManagerTest` (5).
+
 ## [1.24.1] - 2026-09-28
 
 ### Fixed

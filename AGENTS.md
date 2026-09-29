@@ -445,6 +445,36 @@ See `ENHANCEMENT_PLAN_10.md` (assessment: 1 achieved / 9 partial / 7 missing).
 - **No tests changed** (auth had no unit tests); full suite still green.
 - **Version**: versionCode 31, versionName "1.24.1".
 
+### 28. Safe Browse reliability, content-filter enforcement, settings password (v1.25.0)
+- **Safe Browse DNS proxy** (`core/safebrowse/SafeBrowseVpnService.kt`): each
+  query gets its own `protect()`ed `DatagramSocket`, replies are matched by DNS
+  transaction id, three resolvers are tried, and a query is **always answered**
+  (NXDOMAIN blocked / SERVFAIL on upstream failure) so a slow resolver can never
+  stall the device's DNS. A 4-thread pool handles packets; `setUnderlyingNetworks(null)`
+  follows the default network. Only IPv4/UDP:53 is proxied (documented).
+- **Content filter** (`core/content/ContentFilter.kt`): custom-blocklist domains
+  always block when filtering is on. `PreferenceManager` defaults `contentAction`
+  to `BLOCK` and `blockedCategories` to **all** categories.
+- **Accessibility guard** (`core/security/UrlGuardAccessibilityService.kt`):
+  `HOST_REGEX` matches bare domains (browsers show `pornhub.com`, not a full
+  URL), so categories are enforced even without Safe Browse.
+- **Config lock / settings password** (`core/security/ConfigLockManager.kt`,
+  `PasswordHasher.kt`): PBKDF2-HMAC-SHA256 (120k iters, 16-byte salt),
+  constant-time verify, 5-minute in-memory unlock, 5-attempt lockout (60 s).
+  Room `config_lock` (single row) via `ConfigLockDao`/`ConfigLockEntity`; **DB v5**
+  (`MIGRATION_4_5`, non-destructive). No recovery — clearing app data is the only
+  reset.
+- **Settings staging** (`PreferenceManager.EditableSettings` +
+  `editableSettings`/`applySettings`, `SettingsViewModel`): edits update an
+  in-memory draft; `isDirty` gates the Save button; Save verifies (or first
+  creates) the password and writes all settings in one DataStore transaction.
+  Safe Browse **disable** and app Uninstall / file Delete prompt for the password
+  (via `DeviceScanViewModel.lockRequired`/`verifyLock`).
+- **Settings UI**: `SettingsSectionCard` blue tint + blue `BlueButton`/
+  `StepButton`, blue section titles, bottom Save/Discard bar.
+- **Tests**: `PasswordHasherTest` (6), `ConfigLockManagerTest` (5).
+- **Version**: versionCode 32, versionName "1.25.0".
+
 ## Module Structure
 ```
 MalwareShield/
@@ -452,10 +482,11 @@ MalwareShield/
 │   └── src/main/java/com/malwareshield/
 │       ├── MalwareShieldApp.kt
 │       ├── data/
-│       │   ├── db/ (MalwareShieldDatabase v4)
-│       │   ├── dao/ (ScanHistoryDao, AppInventoryDao, ScanCacheDao, ScanSessionDao)
+│       │   ├── db/ (MalwareShieldDatabase v5)
+│       │   ├── dao/ (ScanHistoryDao, AppInventoryDao, ScanCacheDao, ScanSessionDao,
+│       │   │         ConfigLockDao)
 │       │   ├── entities/ (ScanHistoryEntity, AppInventoryEntity, ScanCacheEntity,
-│       │   │              ScanSessionEntity)
+│       │   │              ScanSessionEntity, ConfigLockEntity)
 │       │   ├── repository/ (MalwareRepository, VirusTotalRepository,
 │       │   │                BackgroundScanWorker, CloudLookupWorker,
 │       │   │                ScheduledScanWorker, SignatureFeedWorker)
@@ -506,6 +537,8 @@ MalwareShield/
 │           │   ├── ApkFinder.kt
 │           │   ├── AppInventoryCollector.kt
 │           │   ├── AppScanAudit.kt (+ Report, Store)
+│           │   ├── ConfigLockManager.kt
+│           │   ├── PasswordHasher.kt
 │           │   ├── DetectionCategory.kt (+ Classifier)
 │           │   ├── DeviceFinding.kt (+ ScanProgressInfo, FullScanResult)
 │           │   ├── FindingAllowlist.kt
