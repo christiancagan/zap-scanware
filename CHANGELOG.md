@@ -5,6 +5,32 @@ All notable changes to MalwareShield are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.25.2] - 2026-09-28
+
+### Fixed
+- **Startup hardened against a bad/corrupt preference store** (a likely cause
+  of "app not opening"). `preferencesDataStore` now uses a
+  `ReplaceFileCorruptionHandler` so an unreadable prefs file resets instead of
+  throwing, and every read in `PreferenceManager` is guarded: the startup reads
+  (`themeMode`, `editableSettings`) return defaults on a missing/wrong-typed
+  value instead of throwing during `MainActivity` composition.
+- **Removed broken certificate pins.** The `network_security_config.xml`
+  contained placeholder pins (`AAAA…`/`BBBB…`) that never matched the real
+  servers, silently breaking every VirusTotal/MalwareBazaar request. Pinning
+  removed (base config + debug override kept).
+
+### Added
+- **Crash logger**: uncaught exceptions are written to
+  `Android/data/<pkg>/files/last-crash.txt` (retrievable without root) and to
+  logcat under the `ZapScanware` tag, so an on-device launch crash can be
+  diagnosed without a cable.
+
+### Changed
+- `Application.onCreate` startup work is wrapped in `runCatching` — no single
+  failure there may stop the app opening.
+- `versionCode`: 33 → 34
+- `versionName`: "1.25.1" → "1.25.2"
+
 ## [1.25.1] - 2026-09-28
 
 ### Fixed

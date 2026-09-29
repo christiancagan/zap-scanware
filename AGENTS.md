@@ -492,6 +492,24 @@ See `ENHANCEMENT_PLAN_10.md` (assessment: 1 achieved / 9 partial / 7 missing).
   indefinite spinner.
 - **Version**: versionCode 33, versionName "1.25.1".
 
+### 30. Startup robustness + crash log (v1.25.2)
+- **DataStore fail-safe** (`PreferenceManager`): `preferencesDataStore` uses
+  `ReplaceFileCorruptionHandler { emptyPreferences() }`; `themeMode` and the
+  `editableSettings` snapshot use `.catch { emit(emptyPreferences()) }` and a
+  private `Preferences.safe(key, default)` (per-key `runCatching`) so a missing
+  or wrong-typed value can never throw during startup. This matters because
+  `SettingsViewModel` (created at launch for the theme) reads the whole
+  preference store eagerly.
+- **Crash logger** (`MalwareShieldApp.installCrashLogger`): a
+  `Thread.setDefaultUncaughtExceptionHandler` writes the stack trace to
+  `getExternalFilesDir(null)/last-crash.txt` and `Log.e("ZapScanware", …)`, then
+  delegates to the platform handler. Read it via a file manager or
+  `adb pull /sdcard/Android/data/com.zapscanware.debug/files/last-crash.txt`.
+- **Defensive startup**: `Application.onCreate` work is in `runCatching`.
+- **Network security config**: placeholder certificate pins removed (they broke
+  all VT/Bazaar TLS); base config + debug override retained.
+- **Version**: versionCode 34, versionName "1.25.2".
+
 ## Module Structure
 ```
 MalwareShield/
