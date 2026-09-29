@@ -1,7 +1,7 @@
 # MalwareShield - Mobile Malware Endpoint Protection
 
 ## Overview
-Lightweight Android malware detection and prevention application built with Kotlin and modern Android architecture. Supports manual scanning, background scanning, APK static analysis, SHA-256 hashing, VirusTotal integration, URL/site validation, fingerprint biometric authentication, local scan history, and privacy-first operation.
+Lightweight Android malware detection and prevention application built with Kotlin and modern Android architecture. Supports manual scanning, background scanning, APK static analysis, SHA-256 hashing, VirusTotal integration, URL/site validation, local scan history, and privacy-first operation. There is no login: the app opens straight to the dashboard (see §27).
 
 ## Technology Stack
 | Component | Technology | Rationale |
@@ -16,8 +16,7 @@ Lightweight Android malware detection and prevention application built with Kotl
 | **Security** | Android Keystore | Hardware-backed encryption |
 | **Coroutines** | Kotlin Coroutines + Flow | Async without thread overhead |
 | **API** | VirusTotal v3 + Google Safe Browsing | Industry-standard threat intelligence |
-| **Biometric** | Android BiometricPrompt + FingerprintManager | Hardware-backed fingerprint auth |
-| **Auth** | SecureCredentialsManager + SHA-256 | Encrypted username/password storage |
+| **Crypto** | Android Keystore AES-GCM (`PrivacyCrypto`) | Encrypt local secrets at rest; no login gate |
 
 ## Features
 
@@ -39,14 +38,13 @@ Retrofit-based API, file upload and hash-based report lookup
 ### 6. URL/Site Validation
 SSL/TLS verification, phishing detection, domain reputation, homograph attack detection, safety scoring (0-100), Google Safe Browsing integration
 
-### 7. Fingerprint Authentication
-- **BiometricAuthenticator**: Android BiometricPrompt wrapper with AES-GCM encryption
-- **FingerprintManager**: Hardware detection, enrolled fingerprints check
-- **SecureCredentialsManager**: SHA-256 hashed passwords with salt, encrypted storage
-- **AuthManager**: Central auth state management
-- **LoginScreen/RegisterScreen**: Material Design 3 UI with biometric toggle
-- Account lockout after 5 failed attempts
-- Biometric key invalidated on enrollment changes
+### 7. Authentication — removed (v1.24.1)
+There is no login, password or biometric unlock gate. The app opens straight to
+the dashboard. `BiometricGateScreen`, `AuthViewModel`, `AuthManager` and
+`BiometricAuthenticator` were deleted; the `USE_BIOMETRIC` permission was
+dropped. `PrivacyCrypto` still encrypts local secrets with an Android Keystore
+AES-GCM key, but that key no longer requires user authentication or StrongBox
+(those flags crashed startup on many devices — see §27).
 
 ### 8. Local Scan History
 Room database with Flow, encrypted with Android Keystore
@@ -58,7 +56,7 @@ CPU, RAM, Battery, Network optimization
 All data stored locally only, no telemetry
 
 ### 11. Clean Material Design 3 UI
-Dark/Light theme, bottom navigation (Auth + Scan + Validate + History), threat badges
+Dark/Light theme, navigation drawer (Dashboard + Scan + Validate + History), threat badges
 
 ### 12. Multi-Format Static Analysis
 Format-aware scanning beyond APKs (see `ENHANCEMENT_PLAN.md`):
@@ -426,6 +424,27 @@ See `ENHANCEMENT_PLAN_10.md` (assessment: 1 achieved / 9 partial / 7 missing).
 - **Tests**: `FileDigestReaderTest` (6).
 - **Version**: versionCode 30, versionName "1.24.0".
 
+### 27. Remove login gate + fix startup crash (v1.24.1)
+- **Launch crash root cause**: `PrivacyCrypto.initKeyStore()` ran in
+  `Application.onCreate()` and built its Keystore key with
+  `.setIsStrongBoxBacked(true)` and `.setUserAuthenticationRequired(true)`.
+  StrongBox-unavailable devices, and devices without an enrolled lock screen,
+  throw during key generation → the process crashed before any UI, so the app
+  "would not open at all". (Introduced in v1.22.0.)
+- **Fix**: both flags removed. `initKeyStore()` is wrapped in `runCatching`,
+  `encrypt`/`decrypt` lazily retry via `requireKey()`, and existing callers
+  already guard with `runCatching`. Data remains encrypted at rest.
+- **Authentication removed**: deleted `BiometricGateScreen.kt`,
+  `AuthViewModel.kt`, `AuthManager.kt`, `BiometricAuthenticator.kt`;
+  `MainActivity` no longer imports BiometricPrompt/BiometricManager and renders
+  `LogoBackground { … }` directly (no `if (!isAuthenticated)` branch).
+  Removed `provideBiometricAuthenticator` from `AppModule`, the
+  `USE_BIOMETRIC` manifest permission, and the ProGuard keep for
+  `BiometricAuthenticator`. Guide text updated ("opens straight to the
+  dashboard").
+- **No tests changed** (auth had no unit tests); full suite still green.
+- **Version**: versionCode 31, versionName "1.24.1".
+
 ## Module Structure
 ```
 MalwareShield/
@@ -449,10 +468,9 @@ MalwareShield/
 │       │   │            SettingsScreen, ScheduleScreen, GuideScreen,
 │       │   │            ProviderKeyScreen, LogViewerScreen, ApkFinderScreen)
 │       │   ├── ui/
-│       │   │   ├── auth/ (BiometricGateScreen, BiometricIndicator)
 │       │   │   ├── components/ (UIComponents, ModernComponents, LogoBackground)
 │       │   │   └── theme/ (Theme)
-│       │   └── viewmodel/ (Auth, MalwareScanner, History, Settings, Dashboard,
+│       │   └── viewmodel/ (MalwareScanner, History, Settings, Dashboard,
 │       │       │            Provider, Schedule, Log, UrlScan, ApkFinder, DeviceScan)
 │       └── core/
 │           ├── analysis/
@@ -483,11 +501,6 @@ MalwareShield/
 │           ├── safebrowse/ (SafeBrowseVpnService, DnsPacket)
 │           ├── scheduling/ (ScanScheduler, ScheduledScanWorker)
 │           ├── perf/ (CacheManager)
-│           ├── auth/
-│           │   ├── BiometricAuthenticator.kt
-│           │   ├── SecureCredentialsManager.kt
-│           │   ├── FingerprintManager.kt
-│           │   └── AuthManager.kt
 │           ├── security/
 │           │   ├── APKAnalyzer.kt
 │           │   ├── ApkFinder.kt
@@ -531,13 +544,13 @@ MalwareShield/
 └── docs/ (index.html, README.md, zap-scanware-debug.apk)
 ```
 
-## Fingerprint Authentication Flow
-1. User registers with username + password (SHA-256 + salt)
-2. Credentials encrypted with Android Keystore AES-GCM
-3. Login requires password OR biometric
-4. Biometric key invalidated on enrollment change
-5. Account locks after 5 failed attempts
-6. All auth state stored in encrypted DataStore
+## Startup / Crypto Flow
+1. `MalwareShieldApp.onCreate` calls `PrivacyCrypto.initKeyStore()` (fail-safe).
+2. The Keystore AES-GCM key is created on first launch **without** user-auth or
+   StrongBox requirements, so key generation never crashes startup.
+3. `MainActivity` renders `DashboardScreen` immediately — no unlock gate.
+4. Encrypt/decrypt retry key creation lazily and surface failures to callers,
+   which already wrap them in `runCatching`.
 
 ## Build Configuration
 - **minSdk**: 26
@@ -604,5 +617,5 @@ keystores, API keys are git-ignored).
 - SHA-256 hashing uses streaming 8KB buffers
 - UI uses Jetpack Compose for efficient rendering
 - No telemetry or external data collection
-- Biometric keys require hardware authentication
-- Account lockout after 5 failed attempts
+- Local secrets encrypted with an Android Keystore AES-GCM key (`PrivacyCrypto`)
+- No login/unlock gate — the app opens directly to the dashboard

@@ -5,6 +5,29 @@ All notable changes to MalwareShield are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.24.1] - 2026-09-28
+
+### Fixed
+- **App crashed on launch / could not open.** `PrivacyCrypto.initKeyStore()`
+  ran in `Application.onCreate()` and generated its Keystore key with
+  `setIsStrongBoxBacked(true)` and `setUserAuthenticationRequired(true)`.
+  On devices without a StrongBox, or without an enrolled lock screen, key
+  generation throws — crashing the process before any UI appeared. Both flags
+  are removed, init is now fail-safe (`runCatching`), and encrypt/decrypt retry
+  key creation lazily. Local data stays encrypted at rest.
+
+### Removed
+- **Authentication / unlock gate.** The biometric lock screen
+  (`BiometricGateScreen`, `AuthViewModel`, `AuthManager`,
+  `BiometricAuthenticator`) and the fingerprint prompt in `MainActivity` are
+  gone. The app now opens straight to the dashboard when tapped; there is no
+  login, password or fingerprint gate. The `USE_BIOMETRIC` permission and the
+  now-unused DI provider/ProGuard keep rule were dropped too.
+
+### Changed
+- `versionCode`: 30 → 31
+- `versionName`: "1.24.0" → "1.24.1"
+
 ## [1.24.0] - 2026-09-28
 
 ### Changed

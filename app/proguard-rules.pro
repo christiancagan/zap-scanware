@@ -43,8 +43,7 @@
 -dontwarn kotlinx.coroutines.**
 -keep class androidx.work.** { *; }
 
-# Keep BiometricAuthenticator and PrivacyCrypto for Keystore access.
--keepclassmembers,allowshrinking,allowobfuscation class com.malwareshield.core.auth.BiometricAuthenticator { *; }
+# Keep PrivacyCrypto for Keystore access.
 -keepclassmembers,allowshrinking,allowobfuscation class com.malwareshield.core.security.PrivacyCrypto { *; }
 
 # Keep Android Keystore key aliases.
