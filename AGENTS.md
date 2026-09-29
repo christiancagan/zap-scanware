@@ -510,6 +510,29 @@ See `ENHANCEMENT_PLAN_10.md` (assessment: 1 achieved / 9 partial / 7 missing).
   all VT/Bazaar TLS); base config + debug override retained.
 - **Version**: versionCode 34, versionName "1.25.2".
 
+### 31. Fix launch crash: SettingsViewModel init order (v1.25.3)
+- **Symptom**: app installed but never opened (crashed instantly).
+- **Captured crash** (emulator + the v1.25.2 crash logger):
+  `NullPointerException: Attempt to invoke interface method
+  'void kotlinx.coroutines.flow.MutableStateFlow.setValue(Object)' on a null
+  object reference` at `SettingsViewModel$refreshLockState$1.invokeSuspend`
+  (`SettingsViewModel.kt:114`).
+- **Cause**: the `init {}` block called `refreshLockState()` while
+  `_hasPassword`/`_unlocked` were still uninitialized (declared later in the
+  class). `viewModelScope` = `Dispatchers.Main.immediate`, so the launched body
+  ran synchronously during construction and read the null field as the
+  assignment receiver, then NPE'd on `setValue`. `MainActivity` creates
+  `SettingsViewModel` at launch for the theme → process died before any UI.
+- **Fix**: moved the `init {}` block to the **end** of the class body so every
+  property initializer runs first. (Rule: never call a method that writes a
+  StateFlow from `init` before that field is declared.)
+- **Rule/best practice**: `viewModelScope.launch` on `Main.immediate` executes
+  synchronously up to the first suspension — do not rely on it to defer work
+  past property initialization.
+- **Verified**: installed and launched on an x86_64 API 34 emulator; dashboard
+  renders ("You're protected", Quick actions) and stays resumed; no crash file.
+- **Version**: versionCode 35, versionName "1.25.3".
+
 ## Module Structure
 ```
 MalwareShield/

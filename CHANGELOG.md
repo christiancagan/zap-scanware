@@ -5,6 +5,26 @@ All notable changes to MalwareShield are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.25.3] - 2026-09-28
+
+### Fixed
+- **App crashed on every launch ("not opening").** Real crash captured on an
+  emulator (via the new crash logger):
+  `NullPointerException: Attempt to invoke … MutableStateFlow.setValue(…) on a
+  null object reference` at
+  `SettingsViewModel.refreshLockState(SettingsViewModel.kt:114)`.
+  `SettingsViewModel`'s `init {}` block ran `refreshLockState()` before
+  `_hasPassword`/`_unlocked` were initialized; because `viewModelScope` uses
+  `Dispatchers.Main.immediate`, the launched coroutine executed synchronously
+  during construction and wrote to the still-null field. `MainActivity` creates
+  `SettingsViewModel` at startup (for the theme), so this aborted the process
+  before the UI appeared. The `init` block now runs **last**, after all property
+  initializers.
+
+### Changed
+- `versionCode`: 34 → 35
+- `versionName`: "1.25.2" → "1.25.3"
+
 ## [1.25.2] - 2026-09-28
 
 ### Fixed
