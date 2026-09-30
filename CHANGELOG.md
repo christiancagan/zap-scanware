@@ -5,6 +5,19 @@ All notable changes to MalwareShield are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.29.0] - 2026-09-30
+
+### Added
+- **Safe Browse survives app-close and reboot.** The VPN now runs as a
+  foreground service (`specialUse`: local DNS filtering) with an ongoing
+  "Safe Browse active" notification (tap opens the app, count refreshes at
+  most every 10 s), so the system keeps link protection up when the app is
+  closed. A new `BootReceiver` (`BOOT_COMPLETED` + `QUICKBOOT_POWERON`)
+  restarts it after a reboot when protection is desired and the VPN consent
+  still holds — otherwise Settings keeps showing the grant button. Requires
+  the one-time system VPN consent as before; stopping the toggle removes
+  both the VPN and the notification.
+
 ## [1.28.1] - 2026-09-30
 
 ### Fixed

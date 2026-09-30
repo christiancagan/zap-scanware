@@ -636,9 +636,23 @@ See `ENHANCEMENT_PLAN_10.md` (assessment: 1 achieved / 9 partial / 7 missing).
   `safeBrowseDesired` flow + `isSafeBrowseDesired()`; auto-start in
   `MainActivity` launch and Settings when `prepareIntent() == null`; "Waiting
   for VPN permission" + grant button until consent; declining consent flips
-  desired off. (No BOOT receiver yet — protection does not restart on reboot
-  until the app opens.)
+  desired off.
 - **Version**: versionCode 39, versionName "1.28.1".
+
+### 36. Safe Browse persistence: foreground + boot restart (v1.29.0)
+- **Foreground**: `onStartCommand` calls `promoteToForeground()` — ongoing
+  `safe_browse_status` channel notification ("Safe Browse active", tap opens
+  the app, blocked-count refresh throttled 10 s); `stopForeground(REMOVE)` in
+  `onDestroy`. Manifest: `FOREGROUND_SERVICE` +
+  `FOREGROUND_SERVICE_SPECIAL_USE` permissions, `foregroundServiceType=
+  "specialUse"` + the API-34 `PROPERTY_SPECIAL_USE_FGS_SUBTYPE` property;
+  API 29+ uses the 3-arg `startForeground`, older use the 2-arg call.
+- **Boot**: new `core/safebrowse/BootReceiver.kt` (`RECEIVE_BOOT_COMPLETED`,
+  non-exported, BOOT_COMPLETED + QUICKBOOT_POWERON) — `goAsync` + IO read of
+  `safeBrowseEnabled` (default true); starts via `startForegroundService`
+  (O+) only when desired, not running, and `prepare() == null` (consent
+  survives reboot; never-granted/ revoked consent starts nothing).
+- **Version**: versionCode 40, versionName "1.29.0".
 
 ## Module Structure
 ```

@@ -7,6 +7,12 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" android:minSdkVersion="33" />
 
+    <!-- Safe Browse persistence: restart link protection after reboot and keep
+         the DNS filter alive as a foreground service when the app is closed. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+
     <!-- Security scanner: enumerating ALL installed apps is core functionality.
          Without this, Android 11+ hides user-installed apps and the device scan
          only sees system apps. Google permits QUERY_ALL_PACKAGES for antivirus/
@@ -87,15 +93,31 @@
             android:theme="@style/Theme.ZapScanware" />
 
         <!-- Safe Browse: DNS-filtering VPN that blocks risky/blocked domains
-             before a connection is made. Requires user VPN consent. -->
+             before a connection is made. Requires user VPN consent. Runs as a
+             foreground service (specialUse: local DNS filtering) so link
+             protection stays up when the app is closed. -->
         <service
             android:name=".core.safebrowse.SafeBrowseVpnService"
             android:exported="false"
+            android:foregroundServiceType="specialUse"
             android:permission="android.permission.BIND_VPN_SERVICE">
             <intent-filter>
                 <action android:name="android.net.VpnService" />
             </intent-filter>
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Local DNS-filtering VPN for Safe Browse link protection. Runs only while the user keeps Safe Browse enabled; no data leaves the device except normal upstream DNS resolution." />
         </service>
+
+        <!-- Restart Safe Browse after a device reboot when protection is desired. -->
+        <receiver
+            android:name=".core.safebrowse.BootReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+            </intent-filter>
+        </receiver>
 
         <!-- Automatic URL guard: reads the URL of the currently-visited app and
              checks it against malware/phishing feeds. User must enable this in
