@@ -76,6 +76,16 @@
             android:launchMode="singleTop"
             android:theme="@style/Theme.ZapScanware" />
 
+        <!-- On-screen warning shown by the URL guard for NOTIFY categories.
+             Internal only: not exported, excluded from recents and history. -->
+        <activity
+            android:name=".presentation.WarnActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:launchMode="singleTop"
+            android:theme="@style/Theme.ZapScanware" />
+
         <!-- Safe Browse: DNS-filtering VPN that blocks risky/blocked domains
              before a connection is made. Requires user VPN consent. -->
         <service

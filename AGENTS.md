@@ -585,6 +585,43 @@ See `ENHANCEMENT_PLAN_10.md` (assessment: 1 achieved / 9 partial / 7 missing).
 - **Layout**: Storage & performance item moved directly below Appearance.
 - **Version**: versionCode 37, versionName "1.27.0".
 
+### 34. Per-category Notify/Block, Notify prompt, VirusTotal panel (v1.28.0)
+- **Per-category actions**: `EditableSettings.contentAction` (global) +
+  `blockedCategories` (set) replaced by `categoryActions: Map<String,String>`
+  (name → OFF/NOTIFY/BLOCK, default all BLOCK). Persisted as
+  `category_actions` (`NAME=ACTION,…`); migrates once from the legacy keys via
+  pure `migrateCategoryActions` (blocked set keeps old global action, rest
+  OFF). Pure `parse/serializeCategoryActions` + `resolveVerdict` in
+  `PreferenceManager.kt` / `ContentFilter.kt`: BLOCK wins over NOTIFY, CUSTOM
+  + MALWARE (user blocklist + threat intel) always BLOCK, missing entries
+  default BLOCK. `CategoryMatch` gains `notify` + effective `action`.
+- **Notify prompt**: new non-exported `WarnActivity` (warning icon, matched
+  reasons, OK = dismiss + stay, Cancel = `ACTION_GO_BACK` to
+  `UrlGuardAccessibilityService.onStartCommand` → `GLOBAL_ACTION_BACK`).
+  Guard snoozes re-prompts per host (`WARN_SNOOZE_MS` = 30 min); notification
+  still posted under the existing throttle.
+- **DNS path**: `classify()` only NXDOMAINs BLOCK verdicts; NOTIFY domains
+  resolve normally + throttled (60 s) notification on a new
+  `safe_browse_warn` channel (`WARN_NOTIFICATION_ID` 9002). Previously NOTIFY
+  hard-blocked over DNS (verdict ignored the action).
+- **VirusTotal key fix**: the key was build-time-only (`BuildConfig`), so keyless
+  builds silently skipped VT with no UI recourse. New `PreferenceManager`
+  `virusTotalApiKey` (Keystore-encrypted, like the MB key) + `setVirusTotalApiKey`;
+  `ReputationService.virusTotalApiKey()` (user key → BuildConfig fallback) feeds
+  `check()`, `virusTotalReport()`, `fetchVirusTotalReport()`, and
+  `VirusTotalRepository.upload()`; `virusTotalEnabled()` is now suspend.
+  Settings → VirusTotal panel: masked field with show/hide, password-gated Save
+  (`runProtected`), source status (App setting/Built-in/Not set), ••••last4
+  display, quota/queue lines moved here from Threat intelligence.
+- **Settings UI**: content-filter section renders one Off/Notify/Block row per
+  `ContentCategory` (`CategoryActionRow`); `setContentAction`/
+  `setCategoryBlocked` replaced by `setCategoryAction`.
+- **Scan progress ring**: device-scan running state uses a segmented
+  `ScanProgressRing` (24 rounded arcs, centered %) with pure `segmentsFilled`.
+- **Tests**: `CategoryActionPolicyTest` (12), updated `EditableSettingsTest`;
+  `ScanProgressRingTest` (5).
+- **Version**: versionCode 38, versionName "1.28.0".
+
 ## Module Structure
 ```
 MalwareShield/

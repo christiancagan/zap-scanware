@@ -5,6 +5,38 @@ All notable changes to MalwareShield are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.28.0] - 2026-09-30
+
+### Added
+- **Per-category Off / Notify / Block.** Every content category now has its
+  own action instead of one global Notify/Block switch. NOTIFY shows a new
+  on-screen `WarnActivity` ("this site may be risky", matched categories,
+  **OK** stays on the page, **Cancel** navigates back via the guard) with a
+  30-minute per-host snooze; BLOCK keeps the existing full-screen block page.
+  Old settings migrate once (global action + blocked set → per-category map).
+- **VirusTotal panel (fixes the key).** The VT key was build-time only, so
+  installs built without the env var silently had no cloud lookups and no way
+  to add one. Settings → VirusTotal now has a masked paste field with
+  show/hide, a password-gated Save (Keystore-encrypted, like the MalwareBazaar
+  key), key-source status (App setting / Built-in / Not set), masked display
+  (••••last4), and the quota/queue lines moved here. The user key takes
+  precedence over the baked-in build key everywhere (reports, uploads, queue).
+- **Scan progress ring.** The device-scan running state shows a segmented
+  radial ring with a centered percentage instead of a linear bar.
+
+### Fixed
+- **NOTIFY no longer hard-blocks over Safe Browse.** The DNS path blocked on
+  the verdict regardless of action; NOTIFY domains now resolve normally with
+  a throttled (60 s) notification — the on-screen prompt needs the
+  accessibility guard, and Settings says so.
+
+### Changed
+- `EditableSettings.contentAction`/`blockedCategories` replaced by
+  `categoryActions` map; `ContentFilter.CategoryMatch` gains `notify` and an
+  effective `action` (BLOCK/NOTIFY/OFF); custom blocklist and threat-intel
+  hits always BLOCK. `ReputationService.virusTotalEnabled()` is now suspend
+  and honors the user key.
+
 ## [1.27.0] - 2026-09-28
 
 ### Fixed
