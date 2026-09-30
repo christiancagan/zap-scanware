@@ -622,6 +622,24 @@ See `ENHANCEMENT_PLAN_10.md` (assessment: 1 achieved / 9 partial / 7 missing).
   `ScanProgressRingTest` (5).
 - **Version**: versionCode 38, versionName "1.28.0".
 
+### 35. Notify-prompt reliability, Safe Browse default-ON + strict gate (v1.28.1)
+- **Prompt root cause**: Android 10+ blocks background activity starts, so the
+  guard's direct `startActivity` (Warn + Block) was silently dropped. New
+  `launchPrompt()`: keeps the direct launch as a fast path AND posts a
+  tap-to-open notification (`url_guard` channel, IDs 9003/9004, immutable
+  `PendingIntent`s) — tap always opens the prompt.
+- **Strict gate**: `runProtected` runs free with no password / inside the
+  unlock window. Safe Browse toggle now uses `runProtectedStrict` (always
+  verify; `pendingCreateAction` + new `createPassword()` forces creation when
+  none exists). Both directions covered.
+- **Default-ON**: persisted `safe_browse_enabled` (default true);
+  `safeBrowseDesired` flow + `isSafeBrowseDesired()`; auto-start in
+  `MainActivity` launch and Settings when `prepareIntent() == null`; "Waiting
+  for VPN permission" + grant button until consent; declining consent flips
+  desired off. (No BOOT receiver yet — protection does not restart on reboot
+  until the app opens.)
+- **Version**: versionCode 39, versionName "1.28.1".
+
 ## Module Structure
 ```
 MalwareShield/

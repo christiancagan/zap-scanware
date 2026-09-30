@@ -5,6 +5,28 @@ All notable changes to MalwareShield are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.28.1] - 2026-09-30
+
+### Fixed
+- **Notify prompt never appeared (root cause).** Android 10+ silently blocks
+  background activity starts, so the guard's direct `startActivity` for
+  `WarnActivity` (and `BlockActivity`) was dropped on most devices. Both
+  screens are now ALSO posted as tap-to-open notifications ("Site warning —
+  tap to review" / "Blocked site — tap to view"); tapping always opens the
+  prompt. The direct launch is kept as a fast path where allowed.
+- **Safe Browse enabling skipped the password.** `runProtected` ran the
+  toggle freely when no password existed yet or the 5-minute unlock window
+  was active. The toggle now uses a strict gate: EVERY change (on and off)
+  verifies the password, and first-time use forces password creation before
+  the change applies.
+
+### Added
+- **Safe Browse ON by default.** New persisted `safeBrowseEnabled`
+  preference (default true); the app auto-starts the VPN on launch and in
+  Settings once the one-time system consent is granted, and Settings shows a
+  "Waiting for VPN permission" state with a grant button until then.
+  Declining consent switches protection back off.
+
 ## [1.28.0] - 2026-09-30
 
 ### Added
