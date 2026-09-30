@@ -654,6 +654,23 @@ See `ENHANCEMENT_PLAN_10.md` (assessment: 1 achieved / 9 partial / 7 missing).
   survives reboot; never-granted/ revoked consent starts nothing).
 - **Version**: versionCode 40, versionName "1.29.0".
 
+### 37. Notify→Warn rename, dashboard blocked-domains card (v1.30.0)
+- **Rename**: `CategoryAction.WARN = "WARN"` replaces NOTIFY as the warn
+  verdict; `NOTIFY` kept as a legacy alias accepted in `parse/migrate/
+  resolveVerdict` (all map to WARN — existing installs lose nothing).
+  Guard branch accepts WARN (+legacy NOTIFY belt-and-braces); Settings chips
+  read Off/Warn/Block; `resolveVerdict`/evaluate/comments updated.
+- **BlockedDomainLog** (`core/safebrowse/`, pure + `BlockedDomainLogTest`
+  (5)): `record(domain, action, reason)` (newest-first, 100-cap, consecutive
+  duplicates collapse), `snapshot()`, `blockedCount()`, `warnedCount()`,
+  `clear()`. Recorded on fresh DNS evaluations (BLOCK + WARN) and at guard
+  prompt launches (both paths).
+- **Dashboard**: new "Safe Browse" section + `BlockedDomainsCard` (status,
+  session summary, latest 8 entries with BLOCK(red)/WARN(amber) badges,
+  reason + time, "+N more"); refreshes on ON_RESUME. In-memory session scope
+  (resets on process death) — stated in the empty state.
+- **Version**: versionCode 41, versionName "1.30.0".
+
 ## Module Structure
 ```
 MalwareShield/

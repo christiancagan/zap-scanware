@@ -5,6 +5,24 @@ All notable changes to MalwareShield are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.30.0] - 2026-09-30
+
+### Changed
+- **Notify is now Warn.** Every Content Filter category offers Off / Warn /
+  Block. WARN shows the on-screen prompt (OK stays on the page, Cancel goes
+  back) via the accessibility guard, or a tap-to-open warning notification;
+  over Safe Browse DNS the site resolves with a throttled warning
+  notification. Previously saved NOTIFY values are read as WARN — no setting
+  is lost.
+
+### Added
+- **Dashboard Safe Browse card.** New "Safe Browse" section shows live link
+  protection (Active/Off), the session summary (X blocked · Y warned), and
+  the latest enforcement events with domain, BLOCK/WARN badge, reason, and
+  time. Fed by a new bounded in-memory `BlockedDomainLog` (100 entries,
+  newest-first, duplicate-collapsed) recorded by both the DNS filter and the
+  accessibility guard; refreshes every time the dashboard resumes.
+
 ## [1.29.0] - 2026-09-30
 
 ### Added
