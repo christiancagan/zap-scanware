@@ -5,6 +5,45 @@ All notable changes to MalwareShield are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.27.0] - 2026-09-28
+
+### Fixed
+- **Safe Browse took the whole device offline (root cause).** The VPN's
+  packet helpers read/wrote multi-byte fields **little-endian**, but the
+  IP/UDP/DNS wire format is **big-endian (network order)**. Port 53
+  (`00 35`) misread as 13568, so the `dstPort != 53` check dropped *every*
+  DNS packet and never answered — all sites became unreachable. Fixed in
+  `VpnPacket` (new pure, unit-tested helpers) and `DnsPacket`; the service
+  now answers every query and non-DNS traffic was never affected (split
+  tunnel). Also removed `setBlocking(false)` on the TUN fd, which would have
+  made the reader thread spin while idle.
+- **Content filter / custom blocklist appeared to do nothing.** Three causes:
+  (1) toggles only stage a draft — nothing is enforced until **Save**;
+  (2) blocking needs an enforcement path (Safe Browse VPN *or* the system
+  accessibility service switched on) and Safe Browse itself was broken
+  (above); (3) no on-screen state showed this. The Content filter section now
+  shows a live enforcement status line, and the hero text states that Save is
+  required. Adult-domain coverage also widened (8 more domains + keywords).
+
+### Added
+- **Password always required to save protected sections.** Saving Threat
+  intelligence, Scanning, Content filter, Custom blocklist or Safe Browse
+  now **always** prompts for the settings password, even within the 5-minute
+  unlock window (`EditableSettings.protectionRelevantDiffers`, unit-tested).
+  Cosmetic changes (theme, diagnostics) keep the unlock-window convenience.
+- Safe Browse **enable** and the MalwareBazaar **Save key** button are now
+  password-gated like disable/Save (protected sections marked with a lock
+  hint in their titles).
+- **Storage & performance** panel moved directly below **Appearance**.
+
+### Changed
+- `versionCode`: 36 → 37
+- `versionName`: "1.26.0" → "1.27.0"
+
+### Tests
+- `VpnPacketTest` (7, incl. real wire-format port-53 regression), 
+  `EditableSettingsTest` (5). Full suite green.
+
 ## [1.26.0] - 2026-09-28
 
 ### Added

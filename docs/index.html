@@ -108,7 +108,7 @@
         </div>
         <h1>Zap Scanware</h1>
         <p class="tagline">Lightweight Android malware protection</p>
-        <p class="version">Version 1.26.0 (build 36) · Android 8.0+</p>
+        <p class="version">Version 1.27.0 (build 37) · Android 8.0+</p>
 
         <a class="dl-btn" href="zap-scanware-debug.apk" download="zap-scanware-debug.apk">
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -120,18 +120,19 @@
 
         <div class="hashbox">
             <div class="lbl">SHA-256 checksum</div>
-            <code id="sha256">95EF9C43258809EEDE18B20A06B7C067CEAFEB252C60639248688504EBEC6CBC</code>
+            <code id="sha256">B45F5B508B1850B434EB459C4ED2FE0AA1E6D643D0AEE4784491A027EFFF473D</code>
             <button class="copy-btn" onclick="copyHash()">Copy checksum</button>
         </div>
 
         <p class="meta">
-            <span>18.6 MB</span> · <span>APK</span> · <span>Signed</span> · <span>v1.26.0 (36)</span>
+            <span>18.6 MB</span> · <span>APK</span> · <span>Signed</span> · <span>v1.27.0 (37)</span>
         </p>
 
         <ul class="features">
             <li>Settings password: lock protection toggles and app uninstall / file delete behind Save</li>
             <li>Content filter now blocks selected categories and your custom blocklist by default</li>
-            <li>Safer Safe Browse DNS proxy: every lookup is answered, so connectivity is never stalled</li>
+            <li>Safe Browse fixed: a byte-order bug dropped all DNS and took the device offline — now verified by packet tests</li>
+            <li>Saving Threat intel, Scanning, Content filter, Blocklist or Safe Browse always asks for your password</li>
             <li>Device scan categorises everything: system vs user apps, APKs, archives, executables, scripts, documents, media</li>
             <li>“Scan all files” walks the whole shared storage, not just downloads/documents</li>
             <li>Opens instantly to the dashboard — no login, password or unlock gate</li>

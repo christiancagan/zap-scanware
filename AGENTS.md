@@ -558,6 +558,33 @@ See `ENHANCEMENT_PLAN_10.md` (assessment: 1 achieved / 9 partial / 7 missing).
   executable)".
 - **Version**: versionCode 36, versionName "1.26.0".
 
+### 33. Safe Browse outage, filter enforcement, save-gating (v1.27.0)
+- **Safe Browse total-outage root cause**: `u16`/`putU16` in
+  `SafeBrowseVpnService` and `DnsPacket` used **little-endian**; the wire is
+  **big-endian**. Port 53 (`00 35`) misread as 13568 → `dstPort != 53`
+  dropped every DNS packet, never answered → no site reachable. The old
+  `DnsPacketTest` passed by accident (QDCOUNT=1 misread as 256, still ≥ 1).
+- **Fix**: new pure `core/safebrowse/VpnPacket.kt` (`u16be`/`putU16be`,
+  `parseDnsQuery`, `buildUdpPacket`, `checksum`); the service delegates to it.
+  Removed `.setBlocking(false)` on the TUN fd (blocking reads on the
+  dedicated thread; non-blocking would spin). `VpnPacketTest` (7) uses real
+  wire-format packets, incl. the port-53 regression.
+- **Content filter / blocklist "not working"**: filter logic was correct;
+  failures were (1) draft-vs-saved confusion (toggles stage a draft, only
+  Save enforces), (2) no enforcement path on (Safe Browse broken + system
+  accessibility guard off), (3) no status shown. Settings now shows a live
+  enforcement line (Safe Browse state + `ENABLED_ACCESSIBILITY_SERVICES`
+  check for `UrlGuardAccessibilityService`) and the hero text states Save is
+  required. Adult list widened modestly.
+- **Save-gating**: `EditableSettings.protectionRelevantDiffers(other)` (pure,
+  in `PreferenceManager.kt`, tested by `EditableSettingsTest` (5)) covers
+  Threat intel / Scanning / Content filter / Custom blocklist. `requestSave()`
+  forces the verify dialog when those are dirty, bypassing the 5-min unlock
+  window; cosmetic changes keep it. Safe Browse enable + MalwareBazaar Save
+  key are `runProtected`-gated. Protected sections show a lock hint.
+- **Layout**: Storage & performance item moved directly below Appearance.
+- **Version**: versionCode 37, versionName "1.27.0".
+
 ## Module Structure
 ```
 MalwareShield/
