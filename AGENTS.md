@@ -533,6 +533,31 @@ See `ENHANCEMENT_PLAN_10.md` (assessment: 1 achieved / 9 partial / 7 missing).
   renders ("You're protected", Quick actions) and stays resumed; no crash file.
 - **Version**: versionCode 35, versionName "1.25.3".
 
+### 32. File-scan scope + scanned-item categorisation (v1.26.0)
+- **Why the file count was low**: `ApkFinder` only walked `SEARCH_DIRS`
+  (downloads/documents/DCIM/Movies/Music/WhatsApp/Bluetooth) and only kept
+  `SCAN_EXTENSIONS` (apk/zip/exe/doc/…); media and other files were excluded.
+  Without "All files access" it fell back to MediaStore (app-visible files
+  only). QUICK counted only APKs as "files" (`filesScanned = apks.size`).
+- **`ScannedFileCategory`** (in `ApkFinder.kt`): ANDROID_PACKAGE / ARCHIVE /
+  EXECUTABLE / SCRIPT / DOCUMENT / MEDIA / OTHER, classified by extension via
+  `FileType.fromExtension`; `MEDIA_EXTENSIONS` covers image/video/audio.
+- **`ApkFinder.findScanTargets(allFileTypes, fullStorage)`**: `fullStorage`
+  walks the whole shared storage (skips `Android/` and hidden dirs, depth ≤ 8,
+  cap `MAX_FILES_ALL = 2000`); `allFileTypes` includes media/other. Targeted
+  default unchanged (cap 500, depth 4).
+- **`FullScanResult`** now carries the per-category counts + `scannedAllFileTypes`
+  (apps system/user; files apk/archive/executable/script/document/media/other),
+  computed in `FullDeviceScanner.fullResult(...)` from `targets.files` and
+  `appResult.apps`.
+- **Setting**: `PreferenceManager.scanAllFiles` (default off) → Settings →
+  Scanning → "Scan all files (whole storage)"; DEEP scan passes it to the sweep.
+- **UI**: `DeviceScanScreen` result card shows the breakdown.
+- **Tests**: `ScannedFileCategoryTest` (7). Verified on an emulator: DEEP scan
+  reported "224 apps (223 system · 1 user) · 3 files (1 APK · 1 archive · 1
+  executable)".
+- **Version**: versionCode 36, versionName "1.26.0".
+
 ## Module Structure
 ```
 MalwareShield/

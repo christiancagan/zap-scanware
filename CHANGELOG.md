@@ -5,6 +5,39 @@ All notable changes to MalwareShield are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.26.0] - 2026-09-28
+
+### Added
+- **Scanned-item categorisation.** Every device-scan result now breaks down
+  what was scanned: apps split into **system** vs **user-installed**, and files
+  split into **APK / archives / executables / scripts / documents / media /
+  other** (`ScannedFileCategory`, classified from the extension; magic bytes are
+  still verified by the analyzers). Shown in the Device Scan result card.
+- **"Scan all files (whole storage)"** setting (Settings → Scanning). When on,
+  the DEEP scan walks the **entire shared storage** (skipping the OS-restricted
+  `Android/data` & `Android/obb`), includes media and other file types, and uses
+  a higher cap (2000 files vs 500). Off by default (targeted sweep is faster).
+
+### Changed
+- `ApkFinder.findScanTargets(allFileTypes, fullStorage)` — new scope parameters;
+  `FoundFile` now carries a `ScannedFileCategory`.
+- `FullScanResult` gains `systemAppsScanned`, `userAppsScanned`,
+  `apkFilesScanned`, `archiveFilesScanned`, `executableFilesScanned`,
+  `scriptFilesScanned`, `documentFilesScanned`, `mediaFilesScanned`,
+  `otherFilesScanned`, `scannedAllFileTypes`.
+- `versionCode`: 35 → 36
+- `versionName`: "1.25.3" → "1.26.0"
+
+### Tests
+- `ScannedFileCategoryTest` (7).
+
+### Notes
+- Why a scan could previously show "76 apps, 33 files": the sweep only walked a
+  handful of folders and only counted malware-capable extensions, and QUICK mode
+  counted only APKs as files. System partitions (`/system`, `/vendor`) and
+  app-private data (`/data/data`) remain unreachable without root and are never
+  claimed as scanned.
+
 ## [1.25.3] - 2026-09-28
 
 ### Fixed
