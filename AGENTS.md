@@ -783,6 +783,31 @@ See `ENHANCEMENT_PLAN_10.md` (assessment: 1 achieved / 9 partial / 7 missing).
   `ConfigLockManager` param from `DeviceScanViewModel`.
 - **Version**: versionCode 48, versionName "1.36.0".
 
+### 45. Scheduled scans that actually run (v1.37.0)
+- **Diagnosis**: save path, worker construction and manifest were all
+  sound; the failure modes were (1) periodic work fired ASAP after
+  enabling so the "Next run" countdown was fiction, (2) `update()` could
+  leave the toggle ON with failed/missing work and zero log trace,
+  (3) no startup recovery, (4) the worker ran quick permission scoring
+  only and recorded nothing (no session/history/notification), and
+  (5) "Restricted" battery bucket silently blocks ALL background work.
+- **One-off chain**: `ScanScheduler` enqueues a single one-off link per
+  run (`UNIQUE_CHAIN`), each completion chaining the next via
+  `recordRun`; honest `computeNextRunAt` (pure, `ScanScheduleTimingTest`
+  (8)); stale `UNIQUE_PERIODIC`/`UNIQUE_ONE_OFF` work cancelled on
+  re-enqueue; `update()` logs `outcome=`; `resyncOnStartup()` (called from
+  `MalwareShieldApp`) re-enqueues only when desired-but-missing;
+  `runNow()` enqueues non-unique immediate work flagged `INPUT_MANUAL`.
+- **Full-scan worker**: `ScheduledScanWorker` pulls graph deps via a Hilt
+  entry point (no custom WorkerFactory — other plain workers untouched);
+  runs the user's scan mode, persists the session, records findings,
+  notifies high-risk (max 3, gated), logs trigger/finish; skips chaining
+  for manual runs and stale links after disable.
+- **Screen**: "Run now" button in the hero; red restricted-mode card via
+  `ActivityManager.isBackgroundRestricted()` (API 28+) with an app-details
+  deep link.
+- **Version**: versionCode 49, versionName "1.37.0".
+
 ## Module Structure
 ```
 MalwareShield/

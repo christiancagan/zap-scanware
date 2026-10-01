@@ -5,6 +5,35 @@ All notable changes to MalwareShield are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.37.0] - 2026-10-01
+
+### Fixed
+- **Scheduled scans never ran and left no trace.** Rebuilt the pipeline:
+  - Exact-time one-off chain replaces periodic work: Daily fires today at
+    the chosen time when still ahead (else tomorrow), Weekly on the same
+    7-day grid, Custom interval from now — the "Next run" countdown is now
+    honest, and each completion enqueues the next link (stale
+    periodic/one-off work from older versions is cancelled on re-enqueue).
+    The pending link persists across reboots in WorkManager.
+  - `update()` logs the enqueue outcome, so a failed enqueue can never
+    again leave the toggle ON with no work and no trace
+    (`outcome=enqueue_failed:<reason>` in the event log).
+  - App startup re-enqueues the chain link when desired-but-missing
+    (`resyncOnStartup`; never touches a healthy pending link).
+  - The worker now runs the SAME full device scan as a manual run
+    (previously: quick permission scoring only, recorded nowhere): scan
+    session persisted, every finding recorded to history, high-risk apps
+    notify — so scheduled runs appear in History, the dashboard and the
+    event log (`schedule_trigger` + `scan_finish` with app/file counts).
+    Dependencies come from a Hilt entry point, keeping the other plain
+    workers untouched.
+- **"Restricted" background bucket is now visible.** The Schedule screen
+  detects `isBackgroundRestricted()` (the most common reason scans never
+  run on real phones) and shows a red card with a deep link to app
+  settings. A **Run now** button enqueues an immediate one-shot scan
+  outside the chain to verify the whole pipeline end to end.
+- Pure `computeNextRunAt` covered by `ScanScheduleTimingTest` (8).
+
 ## [1.36.0] - 2026-10-01
 
 ### Fixed
