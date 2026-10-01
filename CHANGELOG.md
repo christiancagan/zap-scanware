@@ -5,6 +5,26 @@ All notable changes to MalwareShield are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.36.0] - 2026-10-01
+
+### Fixed
+- **Dashboard "Total scans" showed 33 instead of 1381.** That tile counted
+  `scan_history` rows — one row per *finding* — while the real scan covered
+  1381 apps + files. The dashboard now reads the latest COMPLETED
+  `scan_session` (`totalScanned = apps + files`) via a new
+  `DashboardViewModel.lastScanItems` flow, and the tile is relabeled
+  "Items scanned" so the number matches the device-scan result.
+  Threats/Clean tiles still count finding rows, which is what they mean.
+
+### Changed
+- **No more password on Delete/Uninstall.** Tapping Delete (file) or
+  Uninstall (app) on a scan finding — on the result list or the detail
+  screen — now only asks the "are you sure?" confirmation. The settings
+  password still guards protection-setting changes and the Safe Browse
+  toggle. Removed the now-unused `lockRequired` / `verifyLock` /
+  `refreshLockRequired` plumbing and the `ConfigLockManager` injection
+  from `DeviceScanViewModel` (Settings keeps its own).
+
 ## [1.35.0] - 2026-10-01
 
 ### Added

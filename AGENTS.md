@@ -468,8 +468,9 @@ See `ENHANCEMENT_PLAN_10.md` (assessment: 1 achieved / 9 partial / 7 missing).
   `editableSettings`/`applySettings`, `SettingsViewModel`): edits update an
   in-memory draft; `isDirty` gates the Save button; Save verifies (or first
   creates) the password and writes all settings in one DataStore transaction.
-  Safe Browse **disable** and app Uninstall / file Delete prompt for the password
-  (via `DeviceScanViewModel.lockRequired`/`verifyLock`).
+  Safe Browse **disable** prompts for the password (strict gate in
+  `SettingsScreen`); app Uninstall / file Delete need only their
+  confirmation dialogs (password gate removed in v1.36.0).
 - **Settings UI**: `SettingsSectionCard` blue tint + blue `BlueButton`/
   `StepButton`, blue section titles, bottom Save/Discard bar.
 - **Tests**: `PasswordHasherTest` (6), `ConfigLockManagerTest` (5).
@@ -768,6 +769,19 @@ See `ENHANCEMENT_PLAN_10.md` (assessment: 1 achieved / 9 partial / 7 missing).
   `ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS` (Unrestricted), each with
   a generic-Settings fallback for makers missing those pages.
 - **Version**: versionCode 47, versionName "1.35.0".
+
+### 44. Honest dashboard count, password-free delete (v1.36.0)
+- **33 vs 1381**: dashboard "Total scans" counted `scan_history` rows (one
+  per finding); the real coverage lives in `scan_session.totalScanned`
+  (apps + files). New `DashboardViewModel.lastScanItems` (latest COMPLETED
+  session via `ScanSessionDao.getAll()`, Hilt-injected) feeds the tile,
+  relabeled "Items scanned". Threats/Clean tiles still count finding rows.
+- **Delete without password**: finding Delete/Uninstall confirm dialogs in
+  `DeviceScanScreen` + `AppDetailScreen` no longer take a password (dialog
+  itself is the confirmation); settings protection untouched. Deleted the
+  now-dead `lockRequired`/`verifyLock`/`refreshLockRequired` and the
+  `ConfigLockManager` param from `DeviceScanViewModel`.
+- **Version**: versionCode 48, versionName "1.36.0".
 
 ## Module Structure
 ```
