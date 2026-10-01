@@ -5,6 +5,16 @@ All notable changes to MalwareShield are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.41.0] - 2026-10-01
+
+### Fixed
+- **Display-over-apps made obvious and failure-proof.** A red dashboard
+  banner now appears until "Display over other apps" is granted, with a
+  one-tap allow button; the moment it is granted, a test prompt card pops
+  immediately as proof. If an overlay ever fails to attach, the notification
+  fallback now fires instead of failing silently (`onFailed` plumbed
+  through both prompt paths).
+
 ## [1.40.0] - 2026-10-01
 
 ### Fixed

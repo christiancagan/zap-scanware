@@ -853,6 +853,15 @@ See `ENHANCEMENT_PLAN_10.md` (assessment: 1 achieved / 9 partial / 7 missing).
   Chrome Secure-DNS note.
 - **Version**: versionCode 52, versionName "1.40.0".
 
+### 49. Overlay grant UX + fallback (v1.41.0)
+- Red `OverlayGrantBanner` on the dashboard until `canDrawOverlays` (own
+  ON_RESUME observer); Settings fires a test overlay the moment the grant
+  flips false→true. `PromptOverlay.show*` take `onFailed`, invoked on any
+  attach failure — both services fall back to their notification path
+  (guard refactored to `postPromptNotification`, VPN to
+  `postWarnNotification`) instead of going silent.
+- **Version**: versionCode 53, versionName "1.41.0".
+
 ## Module Structure
 ```
 MalwareShield/
