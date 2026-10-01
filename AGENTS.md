@@ -808,6 +808,22 @@ See `ENHANCEMENT_PLAN_10.md` (assessment: 1 achieved / 9 partial / 7 missing).
   deep link.
 - **Version**: versionCode 49, versionName "1.37.0".
 
+### 46. Clean-vs-Total, red ring, WARN prompt from VPN (v1.38.0)
+- **Clean mismatch**: clean APKs were emitted as findings (Quick logged every
+  APK; Deep `|| f.isApk` + cache-reuse twin) AND tiles counted all-time
+  history rows vs the latest-session Total. Fixed: only
+  malicious-or-≥MEDIUM become findings (fresh + cached paths); dashboard
+  Threats/Clean derive from the latest COMPLETED session
+  (`lastScanThreats`/`lastScanClean`, Clean = Total − Threats ≥ 0) so the
+  tiles always sum to the Total. Hero "threats blocked" stays all-time.
+- **Ring**: `ScanProgressRing` filled/sweep color primary → `#E53935` red.
+- **WARN prompt**: `SafeBrowseVpnService.notifyWarn` upgraded from a quiet
+  DEFAULT notification (no tap, global 60s gate) to direct-launch fast path
+  + full-screen tap-to-open notification on HIGH `url_guard` (CATEGORY_ALARM)
+  opening `WarnActivity`, per-host 60s cooldown (ID 9006 / code 906).
+  Old `safe_browse_warn` channel abandoned (left uncreated).
+- **Version**: versionCode 50, versionName "1.38.0".
+
 ## Module Structure
 ```
 MalwareShield/

@@ -5,6 +5,33 @@ All notable changes to MalwareShield are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.38.0] - 2026-10-01
+
+### Fixed
+- **Dashboard Clean now matches the Total.** Two compounding bugs: (1) every
+  clean APK on storage was emitted as a "finding" (Quick logged all APKs,
+  Deep kept `|| f.isApk` in the finding gate and the cache-reuse twin), so
+  findings/history were inflated with CLEAN rows — CLEAN is explicitly not a
+  finding. Only real detections (malicious or ≥MEDIUM) become findings now.
+  (2) The Threats/Clean tiles counted all-time `scan_history` rows while the
+  Total counts the latest COMPLETED session, so they could never agree. Both
+  tiles now derive from the latest COMPLETED `scan_session`: Threats =
+  malware+pua+suspicious+low+unknown, Clean = Total − Threats (≥0), so
+  Clean + Threats always equals the Total.
+- **Scan progress ring is red.** The segmented ring + motion sweep used the
+  blue theme primary; both now use signal red (`#E53935`), track unchanged.
+- **Warn now pops up over the browser.** The VPN saw every WARN domain (hence
+  the WARN log entries) but only posted a quiet DEFAULT-importance
+  notification with no tap action on a `safe_browse_warn` channel — and a
+  single global 60s gate suppressed different sites too. It now fires the
+  same prompt as the accessibility guard at verdict time (before page content
+  loads): direct launch fast path + tap-to-open full-screen notification on
+  the HIGH `url_guard` channel (`CATEGORY_ALARM`), opening `WarnActivity`
+  (OK stays, Cancel goes back), with a per-host 60s cooldown so a second
+  risky site always prompts while staying on one page doesn't nag. Note: if
+  system notifications are denied AND background starts are blocked, Android
+  leaves no path to show anything — allow notifications for prompts.
+
 ## [1.37.0] - 2026-10-01
 
 ### Fixed
