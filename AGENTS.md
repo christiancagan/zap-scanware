@@ -862,6 +862,15 @@ See `ENHANCEMENT_PLAN_10.md` (assessment: 1 achieved / 9 partial / 7 missing).
   `postWarnNotification`) instead of going silent.
 - **Version**: versionCode 53, versionName "1.41.0".
 
+### 50. Overlay-free pop-up hardening (v1.42.0)
+- Prompt fallbacks post to a fresh HIGH `url_guard_alert` channel (created
+  in `MalwareShieldApp`; guard `ALERT_CHANNEL_ID`, VPN `WARN_CHANNEL_ID`
+  repointed) — immune to user/OEM-deprioritized `url_guard`.
+  `PromptDiagnostics.fullScreenPopupsAllowed()` (API 34+
+  `canUseFullScreenIntent`, null below) feeds diagnostics line 6 (last
+  prompt moved to 7).
+- **Version**: versionCode 54, versionName "1.42.0".
+
 ## Module Structure
 ```
 MalwareShield/

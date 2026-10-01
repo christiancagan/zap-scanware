@@ -5,6 +5,17 @@ All notable changes to MalwareShield are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.42.0] - 2026-10-01
+
+### Fixed
+- **Prompts pop over the browser with NO overlay permission.** Like
+  Sophos-style apps, the fallback path needs no "Display over other apps":
+  both prompt paths now post to a fresh guaranteed-HIGH `url_guard_alert`
+  channel (Android never upgrades an existing channel, so a lowered
+  `url_guard` could silently neuter pop-ups), and the diagnostics card
+  gains a "Notification pop-up" line reading Android 14+
+  `canUseFullScreenIntent()` with re-allow guidance when blocked.
+
 ## [1.41.0] - 2026-10-01
 
 ### Fixed
