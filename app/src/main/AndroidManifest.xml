@@ -13,6 +13,13 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
 
+    <!-- URL-guard warning/block prompts: lets the prompt notification carry a
+         full-screen intent so the on-screen warning appears over the browser
+         even when a background activity start would be blocked (Android 10+).
+         Install-time permission on API 34+; the user can revoke it in system
+         Settings → Notifications if they only want shade entries. -->
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+
     <!-- Security scanner: enumerating ALL installed apps is core functionality.
          Without this, Android 11+ hides user-installed apps and the device scan
          only sees system apps. Google permits QUERY_ALL_PACKAGES for antivirus/

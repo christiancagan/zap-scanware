@@ -5,6 +5,30 @@ All notable changes to MalwareShield are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.34.0] - 2026-10-01
+
+### Fixed
+- **Gambling/adult visits now actually warn on screen.** Three compounding
+  gaps meant "no warning" was the common outcome:
+  1. The prompt relied on a background activity start, which Android 10+
+     silently drops — the warning sat unseen in the notification shade.
+     Prompt notifications now carry a **full-screen intent** (HIGH
+     `url_guard` channel + `USE_FULL_SCREEN_INTENT` manifest permission),
+     so the Warn/Block screen pops up over the browser immediately.
+  2. A global 30s throttle + same-host dedup sat above the prompt
+     branches, so opening a second risky site within 30s produced NO
+     prompt at all. Those gates now apply to the generic "risky site"
+     notification only; prompts use their own per-host cooldown
+     (`PROMPT_COOLDOWN_MS` 60s for BLOCK, 30-min snooze for WARN).
+  3. The bundled adult/gambling lists missed many real sites (stake,
+     unibet, livejasmin, …). Added 8 adult + 10 gambling domains and 5
+     gambling keywords (sportsbook, roulette, blackjack, …), with
+     false-positive guards (`mistake.com`, `sportsnews.com` stay clean).
+- Setup reminder (unchanged behavior, now actually effective): warnings
+  need Content filter ON with categories set to Warn (Settings → Save +
+  password) AND the accessibility guard enabled (system Settings →
+  Accessibility); Safe Browse alone can only send notifications.
+
 ## [1.33.0] - 2026-10-01
 
 ### Changed

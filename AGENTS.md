@@ -728,6 +728,24 @@ See `ENHANCEMENT_PLAN_10.md` (assessment: 1 achieved / 9 partial / 7 missing).
   (`ScanProgressRingTest` still green).
 - **Version**: versionCode 44, versionName "1.33.0".
 
+### 41. Content-filter warnings that actually appear (v1.34.0)
+- **Assessment**: the Warn feature existed (classifier → verdict → guard →
+  `WarnActivity`) but "no warning" was the common outcome: (1) BAL blocked
+  the background activity start so the prompt sat unseen in the shade;
+  (2) a global 30s throttle + same-host dedup above the prompt branches
+  killed prompts for any second risky site within 30s; (3) bundled
+  adult/gambling lists missed popular sites (stake, unibet, livejasmin).
+- **Full-screen prompt**: `launchPrompt` notifications now
+  `setFullScreenIntent(tap, true)` + `CATEGORY_ALARM` on the HIGH
+  `url_guard` channel, so Warn/Block pops over the browser immediately;
+  new `USE_FULL_SCREEN_INTENT` manifest permission (API 34 install-time).
+- **Throttle scoping**: 30s/lastUrl gates now wrap only the generic
+  notification; BLOCK prompts get a per-host `PROMPT_COOLDOWN_MS` (60s,
+  new `promptedAt` map), WARN keeps its 30-min `warnedAt` snooze.
+- **Wider detection**: +8 adult / +10 gambling exact domains, +5 gambling
+  keywords; 3 new `CategoryClassifierTest` cases incl. FP guards.
+- **Version**: versionCode 45, versionName "1.34.0".
+
 ## Module Structure
 ```
 MalwareShield/
