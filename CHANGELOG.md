@@ -5,6 +5,16 @@ All notable changes to MalwareShield are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.33.0] - 2026-10-01
+
+### Changed
+- **Smaller scan progress ring with a looping animation.** The device-scan
+  ring shrinks from 176dp to 120dp (10dp stroke, smaller centered label)
+  and gains a translucent sweep arc that rotates once every 1.6s while a
+  scan runs, so the ring reads as alive even when the percentage stalls
+  (e.g. while a large file hashes). The lit segments still report the real
+  percentage; segment math (`segmentsFilled`) is unchanged and still tested.
+
 ## [1.32.0] - 2026-10-01
 
 ### Fixed

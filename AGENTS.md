@@ -718,6 +718,16 @@ See `ENHANCEMENT_PLAN_10.md` (assessment: 1 achieved / 9 partial / 7 missing).
 - **Tests**: 5 new stat-gate cases in `FileScanCachePolicyTest` (10 total).
 - **Version**: versionCode 43, versionName "1.32.0".
 
+### 40. Smaller scan ring + looping sweep animation (v1.33.0)
+- **`DeviceScanScreen.ScanProgressRing`**: default size 176dp → 120dp (new
+  `size: Dp` param), 14dp → 10dp stroke, headlineMedium → headlineSmall %
+  label. A translucent primary sweep arc (70°, rounded cap) rotates via
+  `rememberInfiniteTransition` (360° / 1.6s linear, Restart) over the static
+  segments, so motion continues even when progress stalls. Lit segments
+  still report the true percentage; `segmentsFilled` untouched
+  (`ScanProgressRingTest` still green).
+- **Version**: versionCode 44, versionName "1.33.0".
+
 ## Module Structure
 ```
 MalwareShield/

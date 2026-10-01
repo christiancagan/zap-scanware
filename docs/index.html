@@ -108,7 +108,7 @@
         </div>
         <h1>Zap Scanware</h1>
         <p class="tagline">Lightweight Android malware protection</p>
-        <p class="version">Version 1.32.0 (build 43) · Android 8.0+</p>
+        <p class="version">Version 1.33.0 (build 44) · Android 8.0+</p>
 
         <a class="dl-btn" href="zap-scanware-debug.apk" download="zap-scanware-debug.apk">
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -120,12 +120,12 @@
 
         <div class="hashbox">
             <div class="lbl">SHA-256 checksum</div>
-            <code id="sha256">FCBAB20ECF91961CBCD218FC26C01CF3DDD02912C9238831AF8FC6B3808FD62E</code>
+            <code id="sha256">A33FDA751992CBBC25387938BD13202625E6E131D56667DEF4E688BCD394AAF5</code>
             <button class="copy-btn" onclick="copyHash()">Copy checksum</button>
         </div>
 
         <p class="meta">
-            <span>18.6 MB</span> · <span>APK</span> · <span>Signed</span> · <span>v1.32.0 (43)</span>
+            <span>18.6 MB</span> · <span>APK</span> · <span>Signed</span> · <span>v1.33.0 (44)</span>
         </p>
 
         <ul class="features">
@@ -135,6 +135,7 @@
             <li>Safe Browse stays on when the app is closed (foreground + swipe-away restart) and restarts after reboot and app updates</li>
             <li>Incremental file scans: unchanged storage files reuse cached verdicts by content hash — rescans skip re-analysis</li>
             <li>Much faster device scans: unchanged files skip hashing entirely (size/mtime fast-path), system apps excluded</li>
+            <li>Smaller scan progress ring with a looping sweep animation while scanning</li>
             <li>Device scan covers your installed apps only — system apps are excluded with a visible audit record</li>
             <li>APK scanner: one “Scan and Search APK Files” button finds and scans APKs on your device</li>
             <li>VirusTotal panel: paste your API key in Settings — encrypted on-device, password-gated, no rebuild needed</li>
