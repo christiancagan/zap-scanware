@@ -5,6 +5,36 @@ All notable changes to MalwareShield are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.31.0] - 2026-10-01
+
+### Fixed
+- **Device-scan finding buttons fit their labels.** The Uninstall/Delete,
+  Allow and VirusTotal actions now use single-line 12sp ellipsis labels with
+  tight padding, so "Uninstall" and "VirusTotal" no longer clip on narrow
+  phones.
+
+### Changed
+- **Safe Browse stays up when the app is closed.** The VPN already ran as a
+  foreground service; it now also re-issues an explicit start on task
+  swipe-away (when protection is still desired and VPN consent holds),
+  restarts after app updates (`MY_PACKAGE_REPLACED`, not just reboot), and
+  every start path uses the O+ `startForegroundService` helper — the old
+  `startService` calls could throw while the app was in the background.
+  Settings states that protection stays on when the app is closed.
+
+### Added
+- **Incremental file scans (deep).** New Room `file_scan_cache` table (DB
+  v6, non-destructive migration): every analyzed storage file persists its
+  content hash + verdict (score, level, category, threat name, VT summary,
+  analysis version). The next deep scan still hashes each file (cheap
+  streaming I/O, so modified files are never skipped) but reuses the cached
+  verdict for unchanged hashes — skipping the analyzer pipeline, reputation
+  lookups and cloud quota. Size/mtime are stored for diagnostics only and
+  are deliberately not part of the reuse gate (mtime can be forged; a
+  changed byte always changes the hash). Rows unseen for 30 days are
+  pruned. Pure `shouldReuseFileCache` gate covered by
+  `FileScanCachePolicyTest` (5).
+
 ## [1.30.0] - 2026-09-30
 
 ### Changed

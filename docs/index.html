@@ -108,7 +108,7 @@
         </div>
         <h1>Zap Scanware</h1>
         <p class="tagline">Lightweight Android malware protection</p>
-        <p class="version">Version 1.30.0 (build 41) · Android 8.0+</p>
+        <p class="version">Version 1.31.0 (build 42) · Android 8.0+</p>
 
         <a class="dl-btn" href="zap-scanware-debug.apk" download="zap-scanware-debug.apk">
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -120,19 +120,20 @@
 
         <div class="hashbox">
             <div class="lbl">SHA-256 checksum</div>
-            <code id="sha256">40A2DC25F67E6913340F941B2F90641272654A3EA26EE69A218510CE84E1E84A</code>
+            <code id="sha256">B9DB57A60BEA3294CBF89927AF2193128855B2C09E8137FF2D5AA8CE892CA74B</code>
             <button class="copy-btn" onclick="copyHash()">Copy checksum</button>
         </div>
 
         <p class="meta">
-            <span>18.6 MB</span> · <span>APK</span> · <span>Signed</span> · <span>v1.30.0 (41)</span>
+            <span>18.6 MB</span> · <span>APK</span> · <span>Signed</span> · <span>v1.31.0 (42)</span>
         </p>
 
         <ul class="features">
             <li>Per-category Off / Warn / Block: each content category warns with an on-screen prompt (OK/Cancel) or blocks outright</li>
             <li>Dashboard Safe Browse card: live protection status plus the session's blocked/warned domain list</li>
             <li>Safe Browse is ON by default and every toggle change requires the settings password</li>
-            <li>Safe Browse now survives app-close (foreground service) and restarts itself after reboot</li>
+            <li>Safe Browse stays on when the app is closed (foreground + swipe-away restart) and restarts after reboot and app updates</li>
+            <li>Incremental file scans: unchanged storage files reuse cached verdicts by content hash — rescans skip re-analysis</li>
             <li>VirusTotal panel: paste your API key in Settings — encrypted on-device, password-gated, no rebuild needed</li>
             <li>Settings password: lock protection toggles and app uninstall / file delete behind Save</li>
             <li>Content filter now blocks selected categories and your custom blocklist by default</li>

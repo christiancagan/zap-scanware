@@ -109,13 +109,16 @@
                 android:value="Local DNS-filtering VPN for Safe Browse link protection. Runs only while the user keeps Safe Browse enabled; no data leaves the device except normal upstream DNS resolution." />
         </service>
 
-        <!-- Restart Safe Browse after a device reboot when protection is desired. -->
+        <!-- Restart Safe Browse after a device reboot (and after an app update
+             when protection is desired). MY_PACKAGE_REPLACED is delivered only
+             to the updated package, so the non-exported receiver gets it. -->
         <receiver
             android:name=".core.safebrowse.BootReceiver"
             android:exported="false">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>
 

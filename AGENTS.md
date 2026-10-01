@@ -671,6 +671,26 @@ See `ENHANCEMENT_PLAN_10.md` (assessment: 1 achieved / 9 partial / 7 missing).
   (resets on process death) — stated in the empty state.
 - **Version**: versionCode 41, versionName "1.30.0".
 
+### 38. Finding-button fit, VPN swipe-away survival, incremental file cache (v1.31.0)
+- **Finding buttons**: `DeviceScanScreen.FindingCard` actions use single-line
+  12sp ellipsis labels + tight padding, so Uninstall/Delete, Allow and
+  VirusTotal fit on narrow phones; "Recheck known hashes" is single-line too.
+- **VPN app-close survival**: `SafeBrowseVpnService.start()` helper (O+
+  `startForegroundService`, older `startService`) used by MainActivity,
+  Settings and `BootReceiver`; new `onTaskRemoved` re-issues a start when
+  protection is still desired and consent holds (covers OEM swipe-away
+  kills); receiver also handles `MY_PACKAGE_REPLACED` (manifest added) so
+  updates restart protection like reboots do.
+- **File scan cache** (DB v6, `MIGRATION_5_6`, non-destructive): new
+  `FileScanCacheEntity` (`file_scan_cache`, path PK) + `FileScanCacheDao`
+  (`getByPath`/`upsert`/`pruneOlderThan(30d)`/`count`), provided by
+  `AppModule`. Deep-scan file loop hashes every file, then reuses the cached
+  verdict via pure `shouldReuseFileCache` (hash match + current
+  `ANALYSIS_VERSION`; size/mtime stored but not gated) — skipping analysis,
+  reputation and quota; every fresh file upserts its verdict. Covered by
+  `FileScanCachePolicyTest` (5).
+- **Version**: versionCode 42, versionName "1.31.0".
+
 ## Module Structure
 ```
 MalwareShield/
@@ -678,11 +698,11 @@ MalwareShield/
 │   └── src/main/java/com/malwareshield/
 │       ├── MalwareShieldApp.kt
 │       ├── data/
-│       │   ├── db/ (MalwareShieldDatabase v5)
-│       │   ├── dao/ (ScanHistoryDao, AppInventoryDao, ScanCacheDao, ScanSessionDao,
-│       │   │         ConfigLockDao)
+│       │   ├── db/ (MalwareShieldDatabase v6)
+│       │   ├── dao/ (ScanHistoryDao, AppInventoryDao, ScanCacheDao, FileScanCacheDao,
+│       │   │         ScanSessionDao, ConfigLockDao)
 │       │   ├── entities/ (ScanHistoryEntity, AppInventoryEntity, ScanCacheEntity,
-│       │   │              ScanSessionEntity, ConfigLockEntity)
+│       │   │              FileScanCacheEntity, ScanSessionEntity, ConfigLockEntity)
 │       │   ├── repository/ (MalwareRepository, VirusTotalRepository,
 │       │   │                BackgroundScanWorker, CloudLookupWorker,
 │       │   │                ScheduledScanWorker, SignatureFeedWorker)
