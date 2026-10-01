@@ -824,6 +824,22 @@ See `ENHANCEMENT_PLAN_10.md` (assessment: 1 achieved / 9 partial / 7 missing).
   Old `safe_browse_warn` channel abandoned (left uncreated).
 - **Version**: versionCode 50, versionName "1.38.0".
 
+### 47. Overlay Warn/Block prompt over the browser (v1.39.0)
+- **Why**: full-screen notifications only pop when channel/permission state
+  cooperates; users saw shade entries needing a tap. New
+  `core/content/PromptOverlay.kt` (classic Views, main-thread
+  WindowManager, single current prompt) draws the Warn/Block card via
+  `TYPE_APPLICATION_OVERLAY` immediately over any app; modal + focusable so
+  the page can't be used underneath. Cancel exits the page (guard back-nav
+  callback; VPN passes null), Continue/Go-back dismisses.
+- **Wiring**: guard `launchPrompt` + VPN `notifyWarn` try overlay first
+  (`Settings.canDrawOverlays`), else legacy direct-start + full-screen
+  notification with UNIQUE ids per prompt (fixed ids never re-fired).
+  Manifest gains `SYSTEM_ALERT_WINDOW`; Settings content-filter section has
+  a "Display over other apps" Grant/Manage row (deep link
+  `ACTION_MANAGE_OVERLAY_PERMISSION`, ON_RESUME refresh) + updated copy.
+- **Version**: versionCode 51, versionName "1.39.0".
+
 ## Module Structure
 ```
 MalwareShield/

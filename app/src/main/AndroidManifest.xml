@@ -20,6 +20,11 @@
          Settings → Notifications if they only want shade entries. -->
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
 
+    <!-- Overlay prompt: draws the Warn/Block card directly over the browser
+         the moment a risky domain is visited (no shade navigation). The user
+         grants this once via system Settings → "Display over other apps". -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
     <!-- Security scanner: enumerating ALL installed apps is core functionality.
          Without this, Android 11+ hides user-installed apps and the device scan
          only sees system apps. Google permits QUERY_ALL_PACKAGES for antivirus/

@@ -5,6 +5,23 @@ All notable changes to MalwareShield are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.39.0] - 2026-10-01
+
+### Fixed
+- **Warn/Block prompt now appears OVER the browser.** The notification
+  full-screen path only works when channel/permission state cooperates, so
+  prompts sat in the shade needing a tap to reach. New `PromptOverlay`
+  draws the Warn/Block card as a system overlay window
+  (`TYPE_APPLICATION_OVERLAY`) directly over the browser the moment a risky
+  domain is visited — no navigation needed. Cancel exits the page (the
+  accessibility guard navigates back; the VPN path dismisses), Continue
+  stays. Both the guard and the VPN prefer the overlay and keep the
+  notification path as fallback (now with unique ids per prompt, since
+  reusing one id only updates the shade entry and never re-fires
+  full-screen). Needs one user grant: Settings → Content filter →
+  "Display over other apps" (new status row + deep link, refreshed on
+  resume; new `SYSTEM_ALERT_WINDOW` manifest permission).
+
 ## [1.38.0] - 2026-10-01
 
 ### Fixed
