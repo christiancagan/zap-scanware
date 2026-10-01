@@ -5,6 +5,22 @@ All notable changes to MalwareShield are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.35.0] - 2026-10-01
+
+### Added
+- **Keep Safe Browse alive after the app is closed.** Verified our side
+  never stops the VPN (only the Settings toggle calls `stopService`;
+  `stopSelf` runs solely on system revoke). Stops come from the
+  system/OEM side: swipe-away force-stop, battery optimization, or memory
+  pressure — and on Android 12+ a background `startForegroundService`
+  retry can be refused outright. The platform-sanctioned answer is now in
+  the app: the Safe Browse section (while desired) explains the two
+  system switches and deep-links to them — system **VPN settings** (turn
+  on Always-on VPN for Zap Scanware so Android itself keeps it up until
+  it is switched off here) and **battery settings** (set to Unrestricted).
+  Both intents fall back to the main Settings screen on makers without
+  those pages.
+
 ## [1.34.1] - 2026-10-01
 
 ### Fixed

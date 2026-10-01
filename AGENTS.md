@@ -755,6 +755,20 @@ See `ENHANCEMENT_PLAN_10.md` (assessment: 1 achieved / 9 partial / 7 missing).
   the default dark `onSurface` text is unreadable on the dark gradient.
 - **Version**: versionCode 46, versionName "1.34.1".
 
+### 43. Safe Browse app-close survival guidance (v1.35.0)
+- **Diagnosis**: our code never stops the VPN on close (only the Settings
+  toggle calls `stopService`; `stopSelf` is revoke-only). Stops come from
+  the system/OEM (swipe force-stop, battery saver, memory pressure), and
+  on API 31+ a background `startForegroundService` retry may throw
+  `ForegroundServiceStartNotAllowedException` (already caught). No app can
+  force-survive that — only the user via system settings.
+- **Fix in-app**: Safe Browse section (while desired) adds an explainer +
+  two deep links: `ACTION_VPN_SETTINGS` (enable Always-on VPN → Android
+  keeps it up until switched off here) and
+  `ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS` (Unrestricted), each with
+  a generic-Settings fallback for makers missing those pages.
+- **Version**: versionCode 47, versionName "1.35.0".
+
 ## Module Structure
 ```
 MalwareShield/
