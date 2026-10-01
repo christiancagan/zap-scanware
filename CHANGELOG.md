@@ -5,6 +5,22 @@ All notable changes to MalwareShield are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.40.0] - 2026-10-01
+
+### Fixed
+- **Prompt diagnostics card (Settings → Prompt diagnostics).** When no
+  prompt appears over Chrome, the card checks the chain top to bottom — VPN
+  active, DNS queries actually seen, Private DNS mode, content-filter state
+  + Gambling action, overlay grant, last prompt fired — with the first red
+  line naming the reason. Includes a **Test prompt** button (fires a test
+  overlay card, proving display works) and a Refresh button. New
+  `PromptDiagnostics` records every overlay prompt + attach failures; the
+  VPN counts DNS queries seen per session.
+- **Likeliest real cause surfaced, not just logged:** Android Private DNS
+  (or Chrome's own Secure DNS) hides ALL browser DNS from link protection,
+  so no prompt can ever fire — the card warns when Private DNS isn't off
+  and tells where to turn it off.
+
 ## [1.39.0] - 2026-10-01
 
 ### Fixed

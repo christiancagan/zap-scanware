@@ -840,6 +840,19 @@ See `ENHANCEMENT_PLAN_10.md` (assessment: 1 achieved / 9 partial / 7 missing).
   `ACTION_MANAGE_OVERLAY_PERMISSION`, ON_RESUME refresh) + updated copy.
 - **Version**: versionCode 51, versionName "1.39.0".
 
+### 48. Prompt diagnostics (v1.40.0)
+- **Why**: "no prompt over Chrome" has 5+ possible causes (VPN off, Private
+  DNS/Chrome Secure DNS bypass, filter off, category OFF, overlay denied,
+  overlay attach failure) — all invisible. New `core/content/
+  PromptDiagnostics.kt` (last prompt kind/domain/at, overlay attach error,
+  Private-DNS mode read via literal key for minSdk 26) + VPN DNS counters
+  (`dnsQueryCount/lastDnsDomain/lastDnsAt` in `handlePacket`); overlay
+  records prompts + failures.
+- **UI**: Settings "Prompt diagnostics" card with 6 red/green checklist
+  lines, Test-prompt button (overlay or grant deep-link), Refresh, and a
+  Chrome Secure-DNS note.
+- **Version**: versionCode 52, versionName "1.40.0".
+
 ## Module Structure
 ```
 MalwareShield/
