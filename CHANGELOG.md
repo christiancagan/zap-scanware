@@ -5,6 +5,21 @@ All notable changes to MalwareShield are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.43.0] - 2026-10-01
+
+### Changed
+- **Warn prompt now Blocks.** The Warn card's Cancel is now **Block**: it
+  exits the page AND permanently blocks the site (custom blocklist, which
+  always blocks once filtering is on) — from the overlay card, and from the
+  full-screen Warn screen (which blocks directly, so it works even with the
+  accessibility guard off). Continue stays and leaves the page open.
+- **Prompt notifications peek as heads-up banners** (sound + vibration on
+  the HIGH prompt channel), so they show over the browser even where
+  full-screen intents are suppressed.
+- **Settings tidy-up:** "Display over other apps" + Test prompt moved to a
+  new **Prompts over browser** section directly below Safe Browse; the
+  Prompt diagnostics card is removed.
+
 ## [1.42.0] - 2026-10-01
 
 ### Fixed

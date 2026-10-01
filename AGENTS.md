@@ -871,6 +871,18 @@ See `ENHANCEMENT_PLAN_10.md` (assessment: 1 achieved / 9 partial / 7 missing).
   prompt moved to 7).
 - **Version**: versionCode 54, versionName "1.42.0".
 
+### 51. Warn Blocks, heads-up, settings tidy (v1.43.0)
+- `PreferenceManager.blockDomain()` (suspend append, deduped); guard
+  overlay WARN `onBlock` = block + back, new `WarnActivity.
+  ACTION_BLOCK_DOMAIN` (guard handles on worker; WarnActivity ALSO blocks
+  directly on a thread so VPN-only setups work); VPN overlay `onBlock` =
+  block; Warn screen buttons Block/Continue; overlay subtitle per kind.
+- Prompt fallbacks add `DEFAULT_ALL` (heads-up peek where full-screen is
+  suppressed). Settings: overlay Grant/Test moved to new "Prompts over
+  browser" section below Safe Browse; Prompt-diagnostics card + `DiagLine`
+  + diag state removed (object kept for error recording).
+- **Version**: versionCode 55, versionName "1.43.0".
+
 ## Module Structure
 ```
 MalwareShield/
