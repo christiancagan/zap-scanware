@@ -691,6 +691,33 @@ See `ENHANCEMENT_PLAN_10.md` (assessment: 1 achieved / 9 partial / 7 missing).
   `FileScanCachePolicyTest` (5).
 - **Version**: versionCode 42, versionName "1.31.0".
 
+### 39. Fast repeat scans, no system apps, APK-screen simplification (v1.32.0)
+- **Why scans were slow**: every storage file was re-hashed each scan and
+  200+ system apps were hashed + analyzed each time. Fixed with a stat
+  fast-path + system exclusion (below).
+- **Never re-scan unchanged items**: deep-scan file loop pre-loads the whole
+  `file_scan_cache` in one query (`FileScanCacheDao.getAll`), then per file:
+  unchanged size+mtime → pure `shouldReuseFileCacheByStat` reuses with zero
+  I/O; stat changed → hash, and a matching hash still reuses via
+  `shouldReuseFileCache`; only new/changed content runs analysis +
+  reputation + quota. Fresh verdicts persist via one batched `upsertAll`;
+  per-scan reuse counts go to logcat (`FullDeviceScanner`). Accepted
+  trade-off (documented in code): a size+mtime-preserving modification is
+  missed until the next `ANALYSIS_VERSION` bump.
+- **System excluded**: Quick + Deep partition out `isSystem` apps before
+  scoring/hashing; each gets a terminal NOT_ANALYZED audit
+  (`excludedSystemAudits`) with a visible reason. Counts, sessions and the
+  result card ("0 system · N user-installed (system apps excluded)") use
+  user apps only. Storage sweep already never touched system partitions.
+  `ScanMode` descriptions + KDoc, DeviceScan hero and Guide updated.
+- **APK screen**: "Select APK file" picker removed; hero button is now "Scan
+  and Search APK Files" (`finderViewModel.search()`); duplicate lower search
+  button removed. Deleted now-unused `MalwareScannerViewModel` + MainActivity
+  file-picker plumbing (`filePicker`, `handlePickedApk`, dead imports);
+  `ScanScreen(finderViewModel)` only. Guide §2 updated.
+- **Tests**: 5 new stat-gate cases in `FileScanCachePolicyTest` (10 total).
+- **Version**: versionCode 43, versionName "1.32.0".
+
 ## Module Structure
 ```
 MalwareShield/
@@ -717,7 +744,7 @@ MalwareShield/
 │       │   ├── ui/
 │       │   │   ├── components/ (UIComponents, ModernComponents, LogoBackground)
 │       │   │   └── theme/ (Theme)
-│       │   └── viewmodel/ (MalwareScanner, History, Settings, Dashboard,
+│       │   └── viewmodel/ (History, Settings, Dashboard,
 │       │       │            Provider, Schedule, Log, UrlScan, ApkFinder, DeviceScan)
 │       └── core/
 │           ├── analysis/

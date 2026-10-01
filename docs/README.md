@@ -3,7 +3,7 @@
 This folder is served by **GitHub Pages** as the app's public download page.
 
 - Open the site at: `https://<your-username>.github.io/<your-repo>/`
-- The download button serves `zap-scanware-debug.apk` (v1.31.0, 18.6 MB, signed).
+- The download button serves `zap-scanware-debug.apk` (v1.32.0, 18.6 MB, signed).
 
 ## Files
 - `index.html` — the landing page with the download button/icon

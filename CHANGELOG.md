@@ -5,6 +5,47 @@ All notable changes to MalwareShield are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.32.0] - 2026-10-01
+
+### Fixed
+- **Why device scans were slow.** Two costs dominated: (1) every storage
+  file was re-hashed on every scan even when unchanged, and (2) 200+
+  system apps were hashed and analyzed each time. Repeat scans now skip
+  both: unchanged files reuse their saved verdicts without re-hashing
+  (size/mtime fast-path) and system apps are excluded entirely.
+
+### Changed
+- **Scans save everything; only new or updated items are re-scanned.**
+  The deep scan pre-loads the whole file cache in one query, then per
+  file: unchanged size+mtime → reuse with zero I/O (`shouldReuseFileCacheByStat`);
+  stat changed → hash, and a matching hash still reuses the verdict
+  (`shouldReuseFileCache`); only genuinely new/changed content runs the
+  analyzer pipeline, reputation and cloud quota. Fresh verdicts are
+  written in one batched `upsertAll` instead of one transaction per file,
+  and reuse counts are logged per scan. Accepted trade-off, documented in
+  code: a modification that preserves both size and mtime is missed until
+  the next analysis-version bump — any size or mtime change falls through
+  to the content-hash gate, which always re-reads bytes.
+- **System apps/files excluded from device scans.** Both Quick and Deep
+  now cover user-installed apps plus the malware-capable files from the
+  storage sweep (APKs, archives, executables, scripts, documents —
+  system partitions were already unreachable without root). Each excluded
+  system app keeps one terminal `NOT_ANALYZED` audit record with the
+  reason "System app excluded from scan (user-installed apps only)", so
+  the per-app audit stays complete and the exclusion is visible. Result
+  cards read "0 system · N user-installed (system apps excluded)".
+- **APK scanner simplified.** The "Select APK file" picker button is gone;
+  the hero button is now "Scan and Search APK Files" and searches storage
+  for APKs to scan one by one (the per-APK Scan buttons are unchanged).
+  The now-unused `MalwareScannerViewModel` and its MainActivity file-picker
+  plumbing were deleted; `ScanScreen` takes only the finder ViewModel.
+  Guide text updated to match.
+
+### Added
+- `FileScanCacheDao.getAll()` / `upsertAll()` for single-query preload and
+  single-transaction writes; 5 new `FileScanCachePolicyTest` stat-gate
+  cases (10 total in the suite).
+
 ## [1.31.0] - 2026-10-01
 
 ### Fixed
