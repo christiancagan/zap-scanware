@@ -746,6 +746,15 @@ See `ENHANCEMENT_PLAN_10.md` (assessment: 1 achieved / 9 partial / 7 missing).
   keywords; 3 new `CategoryClassifierTest` cases incl. FP guards.
 - **Version**: versionCode 45, versionName "1.34.0".
 
+### 42. Device-scan screen structure fix (v1.34.1)
+- **Fatal brace**: a stray `}` closed the results `LazyColumn` early, so all
+  following `item`/`items` calls were outside list scope (would not
+  compile). Removed; restored the single root-`LazyColumn` rule (§24b).
+- **Gradient cards**: scan-mode + running-state sections moved onto the hero
+  gradient with white/light text and white unselected chip labels, since
+  the default dark `onSurface` text is unreadable on the dark gradient.
+- **Version**: versionCode 46, versionName "1.34.1".
+
 ## Module Structure
 ```
 MalwareShield/
