@@ -883,6 +883,11 @@ See `ENHANCEMENT_PLAN_10.md` (assessment: 1 achieved / 9 partial / 7 missing).
   + diag state removed (object kept for error recording).
 - **Version**: versionCode 55, versionName "1.43.0".
 
+### 52. Dashboard banner removal (v1.44.0)
+- `OverlayGrantBanner` deleted from `DashboardScreen` (redundant with
+  Settings → Prompts over browser).
+- **Version**: versionCode 56, versionName "1.44.0".
+
 ## Module Structure
 ```
 MalwareShield/
