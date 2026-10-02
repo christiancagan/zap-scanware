@@ -888,6 +888,19 @@ See `ENHANCEMENT_PLAN_10.md` (assessment: 1 achieved / 9 partial / 7 missing).
   Settings → Prompts over browser).
 - **Version**: versionCode 56, versionName "1.44.0".
 
+### 53. Inline prompt decisions + pause-first (v1.45.0)
+- `WarnPassStore` (30-min passes, session in-memory, Block wins) +
+  `PromptActionReceiver` (non-exported, explicit intents, CONTINUE_ONCE /
+  BLOCK_ALWAYS) declared in manifest without intent-filter. Both prompt
+  notifications gain Continue-once/Block-always actions (WARN only; unique
+  broadcast requestCodes per prompt).
+- VPN `classify`: pass → silent allow; else prompt + log + pause-first
+  NXDOMAIN; `CachedVerdict(pausable)` so a fresh pass re-evaluates instead
+  of serving the stale 60s block. Guard: pass skips generic + prompt paths
+  (BLOCK unaffected). `warnPauseFirst` pref (default true) in Policy,
+  EditableSettings, snapshot/apply, diff, ViewModel setter, Settings toggle.
+- **Version**: versionCode 57, versionName "1.45.0".
+
 ## Module Structure
 ```
 MalwareShield/

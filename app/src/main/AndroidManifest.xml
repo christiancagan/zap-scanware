@@ -121,6 +121,12 @@
                 android:value="Local DNS-filtering VPN for Safe Browse link protection. Runs only while the user keeps Safe Browse enabled; no data leaves the device except normal upstream DNS resolution." />
         </service>
 
+        <!-- Warn prompt buttons ("Continue once" / "Block always"): explicit
+             intents only, non-exported, so no permission is needed. -->
+        <receiver
+            android:name=".core.content.PromptActionReceiver"
+            android:exported="false" />
+
         <!-- Restart Safe Browse after a device reboot (and after an app update
              when protection is desired). MY_PACKAGE_REPLACED is delivered only
              to the updated package, so the non-exported receiver gets it. -->

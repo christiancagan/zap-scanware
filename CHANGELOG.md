@@ -5,6 +5,21 @@ All notable changes to MalwareShield are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.45.0] - 2026-10-01
+
+### Added
+- **Inline prompt decisions (no permission needed).** Warn notifications on
+  both paths now carry **Continue once** (30-minute pass, settings
+  untouched) and **Block always** (permanent blocklist entry) buttons,
+  tappable from the heads-up banner over Chrome. New `WarnPassStore`
+  (session-scoped passes; Block always wins) honored by the VPN and the
+  guard, and a non-exported `PromptActionReceiver` handles the taps.
+- **Pause-first mode** (Content filter → "Pause Warn sites until allowed",
+  default ON): the first visit to a Warn site fails to load until Continue
+  once is tapped — a warning you never see now still protects. Passes beat
+  the VPN's 60s verdict cache via re-evaluation, so a meanwhile-added block
+  still wins.
+
 ## [1.44.0] - 2026-10-01
 
 ### Removed
