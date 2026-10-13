@@ -5,6 +5,23 @@ All notable changes to MalwareShield are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.47.0] - 2026-10-13
+
+### Added
+- **Allow App whitelist.** The dashboard "Find APKs" tile is now **Allow App**:
+  it lists every user-installed app with an Allow button. Allowed apps are
+  stored in the shared allowlist (by package name) and are **skipped entirely**
+  by device and scheduled scans — never hashed, analyzed, scored, audited, or
+  counted. Settings → **Allowed apps** shows the list with a Remove action.
+  (The APK-file finder stays reachable from the APK scanner.)
+
+### Changed
+- `FindingAllowlist` gained `removePackage(...)` so a package can be un-allowed
+  regardless of whether it was allowed proactively or from a finding.
+
+### Tests
+- 366 unit tests (+3): `removePackage` proactive/hash-keyed/missing cases.
+
 ## [1.46.4] - 2026-10-13
 
 ### Fixed

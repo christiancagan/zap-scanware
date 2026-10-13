@@ -956,6 +956,15 @@ Implements Phase 1 and Phase 2 of `ENHANCEMENT_PLAN_12.md`.
   longer swallowed) and a debug-only `dns_v6 answered` marker proves the IPv6
   reply path. New on-device `SafeBrowseFilterSetupTest` (VPN consent via
   `UiAutomation`, seal + dual-stack + UDP filter assertions). versionCode 62.
+- **v1.47.0** (Allow App whitelist): the dashboard "Find APKs" tile is now
+  "Allow App" — a screen listing every user-installed app with an Allow button.
+  Allowed apps reuse `FindingAllowlist` (package-name keyed) and are skipped
+  entirely by device/scheduled scans (filtered out before scoring/hashing in
+  `FullDeviceScanner` quick+deep, so they are never audited or counted).
+  Settings → "Allowed apps" lists them with a Remove action; `FindingAllowlist`
+  gained `removePackage(...)` for both proactive and finding-time allows. New
+  `AllowAppScreen`/`AllowAppViewModel` + `InstalledAppScanner.listUserApps()`.
+  366 unit tests. versionCode 63.
 
 **Note on "no telemetry":** the app has no telemetry by default. Activity
 reporting (Settings → Activity reporting) is opt-in per device and described in
