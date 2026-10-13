@@ -970,6 +970,17 @@ Implements Phase 1 and Phase 2 of `ENHANCEMENT_PLAN_12.md`.
   (error) — instead of the single Allow / "Allowed" toggle. The active action
   is enabled and the inactive one disabled. Disallow calls the same
   `FindingAllowlist.removePackage(...)` as before. versionCode 64.
+- **v1.47.2** (scan speed + progress): the heavy `AppInventoryCollector.collect()`
+  (GET_ACTIVITIES/SERVICES/RECEIVERS/PROVIDERS + GET_SIGNING_CERTIFICATES +
+  per-package `getInstallSourceInfo`) no longer blocks the scan — it is deferred
+  to a background refresh (`refreshInventoryInBackground` on a SupervisorJob+
+  IO scope) after the result is returned, so the app-detail inventory still
+  populates without slowing the scan. Ordering now uses
+  `InstalledAppScan.lastUpdateTime` (new field) from the existing
+  `scanDevice` enumeration. Progress is now a single accurate percentage:
+  `FullDeviceScanner` enumerates `apps + files` up front and reports
+  `done/total` (deep: apps then files; quick: apps then APKs) instead of the
+  two-phase 0–50/50–100 guess. 366 unit tests. versionCode 65.
 
 **Note on "no telemetry":** the app has no telemetry by default. Activity
 reporting (Settings → Activity reporting) is opt-in per device and described in

@@ -5,6 +5,23 @@ All notable changes to MalwareShield are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.47.2] - 2026-10-13
+
+### Changed
+- **Device scans are faster.** The full app-inventory enumeration (components,
+  signing certs, installers) no longer runs on the scan's critical path — it
+  is deferred to a background refresh after the result is ready. Scan ordering
+  now uses each app's `lastUpdateTime` from the single enumeration the app
+  scanner already performs.
+- **Accurate progress percentage.** Apps and storage files are now counted up
+  front, and the progress bar reports against the real total (`apps + files`)
+  instead of a two-phase 0–50 / 50–100 estimate, so the percentage reflects the
+  number of files left to scan.
+
+### Fixed
+- The initial scan progress label no longer shows a garbled "Preparing…"
+  placeholder.
+
 ## [1.47.1] - 2026-10-13
 
 ### Changed
