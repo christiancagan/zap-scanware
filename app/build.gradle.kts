@@ -53,8 +53,8 @@ android {
         applicationId = "com.zapscanware"
         minSdk = 26
         targetSdk = 34
-        versionCode = 57
-        versionName = "1.45.0"
+        versionCode = 59
+        versionName = "1.46.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "VIRUSTOTAL_API_KEY", "\"$vtApiKey\"")
         buildConfigField("String", "FEED_PUBLIC_KEY", "\"$feedPublicKey\"")
@@ -185,6 +185,10 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
 
     // Instrumented tests (v1.22.0: restored for production readiness)
+    // The Compose BOM must be applied to the androidTest configuration too, or
+    // ui-test-junit4 resolves with no version (androidTestImplementation does not
+    // inherit the BOM from implementation).
+    androidTestImplementation(platform("androidx.compose:compose-bom:2024.01.00"))
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")

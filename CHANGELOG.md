@@ -5,6 +5,69 @@ All notable changes to MalwareShield are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.46.1] - 2026-10-13
+
+### Fixed
+- **Background download scanning no longer fails silently.** On Android 11+
+  the app cannot read other apps' downloads without "All files access". When
+  that access was missing, `DownloadMonitor` did nothing and recorded nothing.
+  It now records a one-time `download_scan` event with
+  `phase=skip, reason=no_storage_access`, so the Activity log shows why automatic
+  download scanning is inactive (grant "All files access" to enable it).
+  `DownloadMonitor` now shares the app's singleton `EventLogger` instead of
+  constructing its own (avoids two writers on one chain).
+
+### Verified
+- On an Android 14 emulator, with "All files access" granted, a new file in
+  Downloads is scanned in the background and logged as `download_scan`
+  start/finish (file type, size, SHA-256, verdict, duration), hash-chained;
+  without the access it logs the skip.
+
+## [1.46.0] - 2026-10-13
+
+Implements Phase 1 (activity logging + settings-password integrity) and Phase 2
+(central dashboard reporting client) of `ENHANCEMENT_PLAN_12.md`.
+
+### Added
+- **Tamper-evident activity log.** Every record is now hash-chained
+  (`EventChain`) and MAC-signed with a non-exportable Keystore key; the chain
+  head is stored encrypted and verified at startup. Editing, deleting, or
+  reordering records is detected. New schema-2 fields `seq`/`prev`/`mac`.
+- **Full logging coverage.** Download scans, manual device scans, cloud
+  lookups, feed refreshes, the Safe Browse VPN and accessibility guard
+  (protection state, block/warn with per-domain rate limiting, 5-minute DNS
+  stats), prompt decisions, settings changes, password events, VirusTotal
+  uploads, and log/history clears are now recorded. Writes are batched off the
+  main thread; the log viewer gained group filters and a chain-status line.
+- **Settings-password integrity.** Persistent lockout with exponential backoff
+  (survives process death), PBKDF2-HMAC-SHA256 at 600k iterations with a
+  Keystore pepper, an 8-character minimum with a common-password list, a
+  fail-closed marker for a missing password row, and a `changePassword` flow.
+- **Protected-policy seal.** Protected settings are HMAC-sealed in DataStore; an
+  out-of-app edit loads strict defaults and raises an integrity alert.
+- **Password-gated clears.** Clearing the activity log or scan history now
+  requires the settings password and is itself recorded.
+- **Central dashboard reporting (opt-in).** Settings → Activity reporting:
+  enroll with a one-time code, then the app uploads the chained log (redacted)
+  and a heartbeat every 60 minutes, applies administrator-locked policy, and
+  honors a remote disconnect. Off until enrolled. See `PRIVACY.md`.
+- **Dashboard server + UI.** New `server/` reference backend (dependency-free
+  Node.js) with chain verification, enrollment, policy, commands, an admin audit
+  log, and a web dashboard; contract in `DASHBOARD_API.md`.
+- **Docs.** `PRIVACY.md`, `DASHBOARD_API.md`, `ENHANCEMENT_PLAN_12.md`.
+
+### Fixed
+- WARN "Continue" on both the overlay and `WarnActivity` now grants the
+  30-minute `WarnPassStore` pass, so pause-first mode lets the page load.
+- `LogRedactor` no longer masks SHA-256 hashes or the log-clear MAC.
+- `EventLogger.allFilesNewestFirst` backup ordering (`.1` is the newest backup).
+
+### Changed
+- Room database v6 → v7 (adds lockout/KDF-version columns; non-destructive).
+
+### Removed
+- Dead `BackgroundScanWorker` (no callers).
+
 ## [1.45.0] - 2026-10-01
 
 ### Added

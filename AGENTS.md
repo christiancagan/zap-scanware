@@ -53,7 +53,9 @@ Room database with Flow, encrypted with Android Keystore
 CPU, RAM, Battery, Network optimization
 
 ### 10. Privacy-First Operation
-All data stored locally only, no telemetry
+All data stored locally only, no telemetry by default. Optional opt-in
+"Activity reporting" to a central dashboard exists since v1.46.0 (see §54 and
+`PRIVACY.md`); it is off until the user enrolls.
 
 ### 11. Clean Material Design 3 UI
 Dark/Light theme, navigation drawer (Dashboard + Scan + Validate + History), threat badges
@@ -901,6 +903,44 @@ See `ENHANCEMENT_PLAN_10.md` (assessment: 1 achieved / 9 partial / 7 missing).
   EditableSettings, snapshot/apply, diff, ViewModel setter, Settings toggle.
 - **Version**: versionCode 57, versionName "1.45.0".
 
+### 54. Activity logging, password integrity, dashboard client (v1.46.0)
+Implements Phase 1 and Phase 2 of `ENHANCEMENT_PLAN_12.md`.
+
+- **Tamper-evident log** (`core/logging/`): `EventChain` (pure canonical form +
+  SHA-256 `prev` link + Keystore-MAC `mac`), `EventLogger` (bounded channel,
+  batched writer, encrypted chain head, `verifyChain`, `readSince`,
+  user-initiated `clearAll` that writes a `LOG_CLEARED` record), `EventRateLimiter`,
+  `LogRedactor` identifier-key exemption, `SecurityEvent` schema 2 (`seq`/`prev`/
+  `mac`), and `KeystoreMac` (`ms_log_mac`/`ms_pw_pepper`/`ms_policy_mac`).
+- **Logging call sites**: download scans, device scans (`SCAN_START/FINISH/CANCEL`,
+  user actions), cloud drain, feed refresh, VPN + accessibility protection state
+  and block/warn (per-domain rate limit) + DNS stats, prompt decisions, app start,
+  permission changes, settings changes, password events, VirusTotal upload,
+  gated log/history clears.
+- **Settings password** (`ConfigLockManager`): persisted lockout (`LockoutPolicy`),
+  600k-iteration PBKDF2 + Keystore pepper (`deriveV2`), `PasswordPolicy`
+  (8–128 + common list), fail-closed marker (`files/security/pw_marker`),
+  `changePassword`, `hardLocked`. Room **DB v7** (`MIGRATION_6_7`).
+- **Policy seal** (`PolicySeal` + `PolicySnapshot` + `PreferenceManager`):
+  HMAC over the stored protected strings; a mismatch loads strict defaults and
+  sets `policyTampered`.
+- **Dashboard client** (`core/telemetry/`): `TelemetryStore`, `TelemetryClient`
+  (OkHttp, `X-Content-SHA256`), `TelemetrySync` (event upload + heartbeat +
+  command/policy handling), `TelemetryWorker`. Settings → Activity reporting.
+- **Server**: `server/` (dependency-free Node.js reference; `DASHBOARD_API.md`,
+  `PRIVACY.md`).
+- **Fixes**: WARN Continue grants the pass on both paths;
+  `allFilesNewestFirst` ordering; removed dead `BackgroundScanWorker`.
+- **Version**: versionCode 58, versionName "1.46.0".
+- **v1.46.1 fix**: `DownloadMonitor` now shares the singleton `EventLogger` and
+  records a one-time `download_scan` skip (`reason=no_storage_access`) when the
+  app lacks "All files access", instead of failing silently. versionCode 59.
+
+**Note on "no telemetry":** the app has no telemetry by default. Activity
+reporting (Settings → Activity reporting) is opt-in per device and described in
+`PRIVACY.md`; it sends redacted events (hashes/counts/categories, never file
+names, paths, or full URLs) and a heartbeat.
+
 ## Module Structure
 ```
 MalwareShield/
@@ -952,7 +992,10 @@ MalwareShield/
 │           │                CloudContinuationPolicy, MalwareBazaarPacer,
 │           │                MalwareBazaarNegativeCache, ReputationReadiness)
 │           ├── downloads/ (DownloadMonitor, DownloadScanWorker, DownloadScanNotifier)
-│           ├── logging/ (EventLogger, SecurityEvent + EventJson, LogRedactor)
+│           ├── logging/ (EventLogger, EventChain, EventRateLimiter,
+│           │             SecurityEvent + EventJson, LogRedactor)
+│           ├── telemetry/ (TelemetryStore, TelemetryClient, TelemetrySync,
+│           │              TelemetryWorker — optional dashboard reporting)
 │           ├── notifications/ (NotificationGate, DeviceThreatNotifier)
 │           ├── providers/ (ProviderKeyManager, SignatureProvider + ProviderKeysFile)
 │           ├── safebrowse/ (SafeBrowseVpnService, DnsPacket)
@@ -965,6 +1008,8 @@ MalwareShield/
 │           │   ├── AppScanAudit.kt (+ Report, Store)
 │           │   ├── ConfigLockManager.kt
 │           │   ├── PasswordHasher.kt
+│           │   ├── PasswordPolicy.kt / LockoutPolicy.kt
+│           │   ├── PolicySeal.kt / KeystoreMac.kt
 │           │   ├── DetectionCategory.kt (+ Classifier)
 │           │   ├── DeviceFinding.kt (+ ScanProgressInfo, FullScanResult)
 │           │   ├── FindingAllowlist.kt
@@ -989,9 +1034,10 @@ MalwareShield/
 │           ├── signatures/ (SignatureFeedManager, SignatureFeedModels
 │           │                 (+ ThreatFeedJson), SignatureVerifier,
 │           │                 MalwareBazaarFeed (+ Parser, MirrorPolicy))
-│           └── storage/ (PreferenceManager.kt)
+│           └── storage/ (PreferenceManager.kt, PolicySnapshot.kt)
 │       └── androidTest/java/com/malwareshield/core/
-│               (AppInstrumentedTest, ScanScreenInstrumentedTest)
+│               (AppInstrumentedTest, ScanScreenInstrumentedTest,
+│                ScannerInstrumentedTest)
 ├── logo/ (zap logo.jpg) → All mipmap/drawable as ic_launcher.webp
 ├── build.gradle.kts
 ├── settings.gradle.kts
@@ -1000,6 +1046,10 @@ MalwareShield/
 ├── README.md
 ├── CHANGELOG.md
 ├── CONTRIBUTING.md
+├── PRIVACY.md                (what is stored/sent; opt-in reporting)
+├── DASHBOARD_API.md          (device <-> dashboard contract)
+├── ENHANCEMENT_PLAN_12.md    (this work's plan + status)
+├── server/                   (dependency-free Node.js dashboard backend + web UI)
 └── docs/ (index.html, README.md, zap-scanware-debug.apk)
 ```
 
@@ -1075,6 +1125,6 @@ keystores, API keys are git-ignored).
 - Background work uses WorkManager with battery/network constraints
 - SHA-256 hashing uses streaming 8KB buffers
 - UI uses Jetpack Compose for efficient rendering
-- No telemetry or external data collection
+- No telemetry by default; optional opt-in activity reporting (see §54)
 - Local secrets encrypted with an Android Keystore AES-GCM key (`PrivacyCrypto`)
 - No login/unlock gate — the app opens directly to the dashboard

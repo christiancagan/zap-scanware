@@ -1,0 +1,16 @@
+{
+  "name": "malwareshield-dashboard",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Centralized web dashboard backend for the MalwareShield Android app (dependency-free reference implementation).",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node --test"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

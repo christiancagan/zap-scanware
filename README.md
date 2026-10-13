@@ -65,7 +65,12 @@ Battery: WorkManager constraints, efficient coroutines
 Network: Minimal API calls, caching, batched requests
 
 ### 9. Privacy-First Operation
-All scan data stored locally only, no telemetry, no external data collection
+All scan data is stored locally only. No telemetry by default and no external
+data collection. Since v1.46.0 an optional, opt-in **Activity reporting** feature
+can send redacted activity (hashes, counts, categories — never file names, paths,
+or full browsing URLs) and a heartbeat to a central dashboard; it is off until a
+device is explicitly enrolled. See `PRIVACY.md` and, for the optional server
+component, `DASHBOARD_API.md` and `server/`.
 
 ### 10. Clean Material Design 3 UI
 Dark/Light theme, bottom navigation (Scan + Validate + History), threat badges
