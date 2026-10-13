@@ -108,7 +108,7 @@
         </div>
         <h1>Zap Scanware</h1>
         <p class="tagline">Lightweight Android malware protection</p>
-        <p class="version">Version 1.46.3 (build 61) · Android 8.0+</p>
+        <p class="version">Version 1.46.4 (build 62) · Android 8.0+</p>
 
         <a class="dl-btn" href="zap-scanware-debug.apk" download="zap-scanware-debug.apk">
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -120,15 +120,16 @@
 
         <div class="hashbox">
             <div class="lbl">SHA-256 checksum</div>
-            <code id="sha256">1D3807469B792978C30C648321EF57DD64E90CA5398C64C11E34A39A827B3A05</code>
+            <code id="sha256">215FB0C848E41D48C0C236D148D77A87C80B802DA2E6397D9138485E8F340BC4</code>
             <button class="copy-btn" onclick="copyHash()">Copy checksum</button>
         </div>
 
         <p class="meta">
-            <span>18.8 MB</span> · <span>APK</span> · <span>Signed</span> · <span>v1.46.3 (61)</span>
+            <span>18.8 MB</span> · <span>APK</span> · <span>Signed</span> · <span>v1.46.4 (62)</span>
         </p>
 
         <ul class="features">
+            <li>Fixed: “Block always” from a warning prompt now re-seals the protection policy, so it can't be mistaken for tampering</li>
             <li>Tamper-evident activity log: every background scan, block, and user action is hash-chained and MAC-signed, and the chain is verified on launch</li>
             <li>Settings-password integrity: persistent lockout with backoff, 600k-iteration PBKDF2 with a hardware-keystore pepper, and a fail-closed marker</li>
             <li>Optional Activity reporting: enroll a device to send redacted activity + heartbeat to a central web dashboard (off by default)</li>

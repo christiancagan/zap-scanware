@@ -5,6 +5,27 @@ All notable changes to MalwareShield are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.46.4] - 2026-10-13
+
+### Fixed
+- **"Block always" no longer trips the policy tamper guard.** The custom
+  blocklist is a sealed field; the prompt-time block wrote it directly via
+  `setCustomBlocklist` without re-sealing, so the next settings load flagged
+  tampering and reset to strict defaults. `blockDomain` (and the dashboard
+  policy path) now re-seals the policy after every out-of-draft write.
+
+### Changed
+- `SafeBrowseVpnService` logs the underlying exception when `establish()`
+  fails (previously swallowed), so a refusal to start is diagnosable.
+
+### Tests
+- New on-device `SafeBrowseFilterSetupTest` (grants the VPN consent via
+  `UiAutomation`, asserts the seal survives `blockDomain`, the dual-stack
+  tunnel comes up, and blocked/allowed domains are filtered over UDP).
+- Verified end-to-end on-device: DNS over TCP (relayed answer), UDP IPv4 and
+  UDP IPv6 (checksummed reply accepted) round-trips against the virtual DNS
+  server.
+
 ## [1.46.3] - 2026-10-13
 
 ### Fixed

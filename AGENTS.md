@@ -948,6 +948,14 @@ Implements Phase 1 and Phase 2 of `ENHANCEMENT_PLAN_12.md`.
   DNS-over-TCP with the same verdict logic as UDP instead of hanging the
   client; `PromptCoordinator` (15 s per-domain claim, owners `vpn`/`guard`)
   prevents the double WARN prompt. 363 unit tests (+28). versionCode 61.
+- **v1.46.4 fix** (policy seal): prompt-time "Block always" wrote the sealed
+  `custom_blocklist` via the raw setter without re-sealing, so the next settings
+  load flagged `policyTampered` and reset to strict defaults. `blockDomain`
+  and the dashboard policy path now call `PreferenceManager.resealPolicy()`
+  after every out-of-draft write. Also: `establish()` failures are logged (no
+  longer swallowed) and a debug-only `dns_v6 answered` marker proves the IPv6
+  reply path. New on-device `SafeBrowseFilterSetupTest` (VPN consent via
+  `UiAutomation`, seal + dual-stack + UDP filter assertions). versionCode 62.
 
 **Note on "no telemetry":** the app has no telemetry by default. Activity
 reporting (Settings → Activity reporting) is opt-in per device and described in
