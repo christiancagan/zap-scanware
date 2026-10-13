@@ -965,6 +965,11 @@ Implements Phase 1 and Phase 2 of `ENHANCEMENT_PLAN_12.md`.
   gained `removePackage(...)` for both proactive and finding-time allows. New
   `AllowAppScreen`/`AllowAppViewModel` + `InstalledAppScanner.listUserApps()`.
   366 unit tests. versionCode 63.
+- **v1.47.1** (Allow App buttons): each app row in the Allow App screen now
+  shows two always-visible buttons — **Allow** (primary) and **Disallow**
+  (error) — instead of the single Allow / "Allowed" toggle. The active action
+  is enabled and the inactive one disabled. Disallow calls the same
+  `FindingAllowlist.removePackage(...)` as before. versionCode 64.
 
 **Note on "no telemetry":** the app has no telemetry by default. Activity
 reporting (Settings → Activity reporting) is opt-in per device and described in

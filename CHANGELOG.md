@@ -5,6 +5,15 @@ All notable changes to MalwareShield are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.47.1] - 2026-10-13
+
+### Changed
+- **Allow App rows now show explicit Allow / Disallow buttons.** Each app
+  gets two always-visible buttons: **Allow** whitelists it (skipped by scans),
+  **Disallow** removes it from the whitelist. The active action is highlighted
+  and the inactive one is disabled, replacing the previous single Allow/
+  "Allowed" toggle.
+
 ## [1.47.0] - 2026-10-13
 
 ### Added
