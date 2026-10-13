@@ -5,6 +5,18 @@ All notable changes to MalwareShield are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.46.2] - 2026-10-13
+
+### Fixed
+- **Safe Browse no longer fakes "active" when the VPN cannot start.** If
+  `establish()` failed (e.g. another VPN app is active, or consent was revoked),
+  `SafeBrowseVpnService` returned `START_NOT_STICKY` while leaving the
+  foreground "Safe Browse active" notification up — a zombie status for a
+  service that was intercepting nothing. It now demotes itself (removes the
+  status notification, `stopSelf`) and records a `protection_state` event with
+  `reason=establish_failed` (ERROR) so the Activity log and diagnostics show
+  the failure. Nothing else changes on the happy path.
+
 ## [1.46.1] - 2026-10-13
 
 ### Fixed

@@ -935,6 +935,11 @@ Implements Phase 1 and Phase 2 of `ENHANCEMENT_PLAN_12.md`.
 - **v1.46.1 fix**: `DownloadMonitor` now shares the singleton `EventLogger` and
   records a one-time `download_scan` skip (`reason=no_storage_access`) when the
   app lacks "All files access", instead of failing silently. versionCode 59.
+- **v1.46.2 fix**: `SafeBrowseVpnService.onStartCommand` on `establish()`
+  failure (`START_NOT_STICKY` path) now demotes the zombie foreground status —
+  `protection_state` (`stopped`, `reason=establish_failed`, ERROR) is logged and
+  `stopSelf()` removes the stale "Safe Browse active" notification instead of
+  leaving it while nothing is intercepted. versionCode 60.
 
 **Note on "no telemetry":** the app has no telemetry by default. Activity
 reporting (Settings → Activity reporting) is opt-in per device and described in
