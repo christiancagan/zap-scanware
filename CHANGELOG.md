@@ -5,6 +5,34 @@ All notable changes to MalwareShield are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.46.3] - 2026-10-13
+
+### Fixed
+- **Safe Browse is dual-stack and always answers.** The tunnel previously
+  advertised/routed only an IPv4 virtual DNS server, so on IPv6-capable
+  networks (RDNSS or IPv6-only) DNS queries bypassed the filter entirely.
+  The VPN now adds an IPv6 address, DNS server and route (`fdfe:dcba:9876::/…`)
+  and `VpnPacket` parses/replies to IPv6 (UDP checksum computed, extension
+  headers walked) as well as IPv4.
+- **DNS-over-TCP no longer hangs.** TCP queries to the virtual DNS server
+  were routed into the tunnel and silently dropped (clients fell back to TCP
+  only when the UDP path failed/truncated, then waited out a long timeout).
+  The new packet-level `TcpDnsResponder` terminates the handshake, answers
+  the length-prefixed query with the same verdict logic as UDP (NXDOMAIN for
+  blocks, upstream resolution otherwise, SERVFAIL on failure or oversized
+  answers), and closes — never a silent drop.
+- **One warning prompt per visit.** Safe Browse (DNS-time) and the
+  accessibility guard (page-render time) could both fire a WARN card for the
+  same domain, with the second overlay replacing the first mid-read. A new
+  `PromptCoordinator` claim (15 s per domain, released early on "Block")
+  makes the second owner stand down.
+
+### Tests
+- 363 unit tests (+28): IPv6 parse/reply/checksum, hop-by-hop walk, TCP
+  frame parse/checksum, responder state machine (handshake, query, split
+  segments, retransmit resend, FIN/RST, caps, eviction), prompt
+  coordination.
+
 ## [1.46.2] - 2026-10-13
 
 ### Fixed

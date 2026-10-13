@@ -99,7 +99,8 @@ Format-aware scanning beyond APKs (see `ENHANCEMENT_PLAN.md`):
 - **Safe Browse** (`core/safebrowse/SafeBrowseVpnService`): a DNS-filtering
   `VpnService` that classifies each queried domain with `ContentFilter` and
   returns NXDOMAIN for blocked/malware names — a real "scan before open"
-  (domain granularity; DoH/DoT can bypass). Enabled in Settings → Safe Browse.
+  (domain granularity; IPv4+IPv6, UDP+TCP answered since v1.46.3; DoH/DoT can
+  bypass). Enabled in Settings → Safe Browse.
 - **Download scanning** (`core/downloads/`): `DownloadMonitor` observes new
   downloads and `DownloadScanWorker` analyzes + reputation-checks them, then
   notifies and records to history. Toggle: Settings → Scan downloaded files.
@@ -940,6 +941,13 @@ Implements Phase 1 and Phase 2 of `ENHANCEMENT_PLAN_12.md`.
   `protection_state` (`stopped`, `reason=establish_failed`, ERROR) is logged and
   `stopSelf()` removes the stale "Safe Browse active" notification instead of
   leaving it while nothing is intercepted. versionCode 60.
+- **v1.46.3 fixes** (website control): the tunnel is dual-stack — IPv6 address
+  + DNS server + /128 route (`fdfe:dcba:9876::1/2`), `VpnPacket` parses v4/v6
+  UDP and TCP frames (extension-header walk, pseudo-header checksums) and
+  builds replies for both; the new packet-level `TcpDnsResponder` answers
+  DNS-over-TCP with the same verdict logic as UDP instead of hanging the
+  client; `PromptCoordinator` (15 s per-domain claim, owners `vpn`/`guard`)
+  prevents the double WARN prompt. 363 unit tests (+28). versionCode 61.
 
 **Note on "no telemetry":** the app has no telemetry by default. Activity
 reporting (Settings → Activity reporting) is opt-in per device and described in
@@ -990,7 +998,8 @@ MalwareShield/
 │           │   ├── rules/ (ThreatSignatures, YaraRule, RuleParser,
 │           │   │            RuleCondition, RuleEngine, BundledRules)
 │           │   └── util/ (BytePatternScanner, Entropy, StringExtractor, AnalysisIo)
-│           ├── content/ (ContentCategory, CategoryClassifier, ContentFilter)
+│           ├── content/ (ContentCategory, CategoryClassifier, ContentFilter, WarnPassStore,
+│           │              PromptOverlay, PromptActionReceiver, PromptDiagnostics, PromptCoordinator)
 │           ├── reputation/ (ReputationService, ReputationCache, RateLimiter,
 │           │                ReputationVerdict + VtSummary, CloudLookupQueue,
 │           │                CloudLookupGraph, CloudLookupNotifier,
@@ -1003,7 +1012,8 @@ MalwareShield/
 │           │              TelemetryWorker — optional dashboard reporting)
 │           ├── notifications/ (NotificationGate, DeviceThreatNotifier)
 │           ├── providers/ (ProviderKeyManager, SignatureProvider + ProviderKeysFile)
-│           ├── safebrowse/ (SafeBrowseVpnService, DnsPacket)
+│           ├── safebrowse/ (SafeBrowseVpnService, VpnPacket, TcpDnsResponder, DnsPacket,
+│           │                  BlockedDomainLog, BootReceiver)
 │           ├── scheduling/ (ScanScheduler, ScheduledScanWorker)
 │           ├── perf/ (CacheManager)
 │           ├── security/

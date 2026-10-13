@@ -108,7 +108,7 @@
         </div>
         <h1>Zap Scanware</h1>
         <p class="tagline">Lightweight Android malware protection</p>
-        <p class="version">Version 1.46.2 (build 60) · Android 8.0+</p>
+        <p class="version">Version 1.46.3 (build 61) · Android 8.0+</p>
 
         <a class="dl-btn" href="zap-scanware-debug.apk" download="zap-scanware-debug.apk">
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -120,12 +120,12 @@
 
         <div class="hashbox">
             <div class="lbl">SHA-256 checksum</div>
-            <code id="sha256">FB7AD83F9D1AAAD32BD25756C2420A09D2437E631136E2B9B592CD9837385490</code>
+            <code id="sha256">1D3807469B792978C30C648321EF57DD64E90CA5398C64C11E34A39A827B3A05</code>
             <button class="copy-btn" onclick="copyHash()">Copy checksum</button>
         </div>
 
         <p class="meta">
-            <span>18.8 MB</span> · <span>APK</span> · <span>Signed</span> · <span>v1.46.2 (60)</span>
+            <span>18.8 MB</span> · <span>APK</span> · <span>Signed</span> · <span>v1.46.3 (61)</span>
         </p>
 
         <ul class="features">
@@ -133,6 +133,7 @@
             <li>Settings-password integrity: persistent lockout with backoff, 600k-iteration PBKDF2 with a hardware-keystore pepper, and a fail-closed marker</li>
             <li>Optional Activity reporting: enroll a device to send redacted activity + heartbeat to a central web dashboard (off by default)</li>
             <li>Per-category Off / Warn / Block: each content category warns with an on-screen prompt (OK/Cancel) or blocks outright</li>
+            <li>Safe Browse filters DNS over IPv4 and IPv6 (TCP fallback included) and shows only one warning prompt per visit, even with both enforcement paths on</li>
             <li>Dashboard Safe Browse card: live protection status plus the session's blocked/warned domain list</li>
             <li>Safe Browse is ON by default and every toggle change requires the settings password</li>
             <li>Safe Browse stays on when the app is closed (foreground + swipe-away restart) and restarts after reboot and app updates</li>

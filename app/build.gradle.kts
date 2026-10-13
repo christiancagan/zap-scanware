@@ -53,8 +53,8 @@ android {
         applicationId = "com.zapscanware"
         minSdk = 26
         targetSdk = 34
-        versionCode = 60
-        versionName = "1.46.2"
+        versionCode = 61
+        versionName = "1.46.3"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "VIRUSTOTAL_API_KEY", "\"$vtApiKey\"")
         buildConfigField("String", "FEED_PUBLIC_KEY", "\"$feedPublicKey\"")
