@@ -5,6 +5,22 @@ All notable changes to MalwareShield are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.47.3] - 2026-10-14
+
+### Changed
+- **Parallel file analysis.** The deep scan now analyzes up to four storage
+  files concurrently (bounded for RAM) instead of strictly one at a time, so
+  first-time scans finish several times faster.
+- **Prioritized MalwareBazaar.** The per-file reputation hot path is now fully
+  offline (feeds + cache only); MalwareBazaar lookups are deferred to a
+  prioritized phase that spends the per-scan budget on the highest-risk
+  candidates - fewer network round-trips and no more spending quota on the
+  first N files in arbitrary order.
+- **Cheaper lookups.** The app scan cache is loaded in one query (no per-app
+  read), file type is derived from the already-read head bytes (no second open),
+  and quick/deep progress callbacks are throttled so the UI recomposes at most
+  ~10/second.
+
 ## [1.47.2] - 2026-10-13
 
 ### Changed

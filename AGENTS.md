@@ -981,6 +981,19 @@ Implements Phase 1 and Phase 2 of `ENHANCEMENT_PLAN_12.md`.
   `FullDeviceScanner` enumerates `apps + files` up front and reports
   `done/total` (deep: apps then files; quick: apps then APKs) instead of the
   two-phase 0–50/50–100 guess. 366 unit tests. versionCode 65.
+- **v1.47.3** (scan performance): the deep-scan file loop is now **parallel**
+  (`coroutineScope` + `async(Dispatchers.IO.limitedParallelism(4))`) over
+  thread-safe collections (Collections.synchronizedList for findings,
+  candidates/freshFileEntries, AtomicInteger counters) - analyzers are
+  stateless singletons so parallel dispatch is safe. **MalwareBazaar is
+  deferred**: `ReputationService.check(includeMalwareBazaar=false)` keeps the
+  per-file hot path offline; a new `ReputationService.bazaarVerdict(hash)`
+  spends the per-scan budget on the highest-priority `candidates` after the
+  loops, upgrading file findings/cache rows (and creating a MALWARE finding for
+  a clean file MalwareBazaar flags) plus merging into the app assessment.
+  Also: `ScanCacheDao.getAll()` batch read, `FileTypeIdentifier.identify(head,
+  file) to avoid re-opening files, and throttled quick/deep progress callbacks
+  (`PROGRESS_INTERVAL_MS`). 366 unit tests. versionCode 66.
 
 **Note on "no telemetry":** the app has no telemetry by default. Activity
 reporting (Settings → Activity reporting) is opt-in per device and described in
