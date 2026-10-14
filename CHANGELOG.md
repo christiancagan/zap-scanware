@@ -5,6 +5,24 @@ All notable changes to MalwareShield are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.47.4] - 2026-10-14
+
+### Fixed
+- **Missing apps in device scans.** System apps were silently partitioned out
+  before scoring, so a phone reporting 71 installed apps would only scan ~40.
+  The result card now states the scope explicitly
+  ("0 system - N user-installed (system apps excluded ...)"), and coverage
+  honesty extends to the skipped count ("N skipped" audits stay terminal).
+
+### Added
+- **Scan system apps (Settings - Scanning, default OFF).** When on, quick and
+  deep scans - manual and scheduled - include preinstalled system apps
+  alongside user apps. Off preserves the faster user-only default.
+- **Scan transparency.** The progress card names the app/file being scanned
+  right now ("Now: ..."), and the result card gains "Show scanned items",
+  listing every scanned app label and file name (first 50 each, then
+  "+N more") - so you can verify what was actually checked.
+
 ## [1.47.3] - 2026-10-14
 
 ### Changed

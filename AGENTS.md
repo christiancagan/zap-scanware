@@ -992,8 +992,20 @@ Implements Phase 1 and Phase 2 of `ENHANCEMENT_PLAN_12.md`.
   loops, upgrading file findings/cache rows (and creating a MALWARE finding for
   a clean file MalwareBazaar flags) plus merging into the app assessment.
   Also: `ScanCacheDao.getAll()` batch read, `FileTypeIdentifier.identify(head,
-  file) to avoid re-opening files, and throttled quick/deep progress callbacks
+  file)` to avoid re-opening files, and throttled quick/deep progress callbacks
   (`PROGRESS_INTERVAL_MS`). 366 unit tests. versionCode 66.
+- **v1.47.4** (scan coverage + transparency): the 71-vs-40 gap was the silent
+  system-app partition in `FullDeviceScanner` (system apps never reached
+  scoring/hashing). New `PreferenceManager.scanSystemApps` (default OFF,
+  sealed + staged via `EditableSettings`/`applySettings`, logged in
+  `PolicySnapshot`, `SettingsViewModel.setScanSystemApps`, Settings toggle):
+  when ON, quick+deep (manual + scheduled) scan system apps too; the result
+  card states the scope dynamically. `ScanProgressInfo.currentItem` carries
+  the live app label/file name (throttled emits); `FullScanResult` gains
+  `scannedSystemApps` + `scannedAppLabels`/`scannedFileNames` (scan order);
+  `DeviceScanScreen` shows "Now: ..." live and a "Show scanned items"
+  expander (50-cap + "+N more"). `ScanMode`/Guide copy updated. 366 unit
+  tests. versionCode 67.
 
 **Note on "no telemetry":** the app has no telemetry by default. Activity
 reporting (Settings → Activity reporting) is opt-in per device and described in
