@@ -1006,6 +1006,16 @@ Implements Phase 1 and Phase 2 of `ENHANCEMENT_PLAN_12.md`.
   `DeviceScanScreen` shows "Now: ..." live and a "Show scanned items"
   expander (50-cap + "+N more"). `ScanMode`/Guide copy updated. 366 unit
   tests. versionCode 67.
+- **v1.47.5** (scheduled-scan logging): two gaps. (1) The writer batches up to
+  5s but a finished worker's process can die first, losing that run's events
+  (UI process outlives the window, so manual scans were fine) - new
+  `EventLogger.flushNow()` (bounded drain + sync flush, never throws),
+  called in `ScheduledScanWorker` `finally`. (2) `isDndActive()` read
+  `currentInterruptionFilter` without policy access (returns UNKNOWN, never
+  ALL), deferring every scan with respect-DND on - now fail-open unless
+  `isNotificationPolicyAccessGranted`. Also added worker `SCAN_START` parity
+  (mode + trigger, shared correlation ID). Verified on-device via Run now:
+  trigger/start/finish (seq 85-87) persisted. 366 unit tests. versionCode 68.
 
 **Note on "no telemetry":** the app has no telemetry by default. Activity
 reporting (Settings → Activity reporting) is opt-in per device and described in

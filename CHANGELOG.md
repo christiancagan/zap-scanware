@@ -5,6 +5,25 @@ All notable changes to MalwareShield are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.47.5] - 2026-10-14
+
+### Fixed
+- **No log recorded during scheduled scans.** The event writer batches up to
+  5 seconds, but a finished worker's process can die first - losing that
+  run's events (the UI process always outlives the window, so manual scans
+  were unaffected). New `EventLogger.flushNow()` drains and persists the
+  queue synchronously; `ScheduledScanWorker` calls it in a `finally` block.
+- **Scheduled scans could silently never run.** `isDndActive()` read
+  `currentInterruptionFilter` without notification-policy access, which
+  returns UNKNOWN (never ALL) - deferring every scan when "Respect DND" was
+  on. Now DND is honored only when its state is actually readable; otherwise
+  the scan proceeds.
+
+### Added
+- **SCAN_START for scheduled runs.** The worker now logs `scan_start` (mode +
+  trigger, same correlation ID as trigger/finish), matching manual scans -
+  so a scheduled run is visible start-to-finish in the event log.
+
 ## [1.47.4] - 2026-10-14
 
 ### Fixed
