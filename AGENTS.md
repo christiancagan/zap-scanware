@@ -1037,8 +1037,19 @@ Implements Phase 1 and Phase 2 of `ENHANCEMENT_PLAN_12.md`.
   deferred phase, `MalwareRepository` x2, `SignatureFeedWorker`, settings
   save/sync) and the telemetry VT flag now resolve effective keys, so cloud
   intel works with zero user setup and any pasted key still overrides.
-  Settings shows key source for both providers; key supply documented in
-  CONTRIBUTING. 374 unit tests. versionCode 70.
+Settings shows key source for both providers; key supply documented in
+CONTRIBUTING. 374 unit tests. versionCode 70.
+- **v1.47.8** (scan performance + instrumented tests): deep-scan app-analysis
+  loop now runs in parallel (`limitedParallelism(4)` over thread-safe
+  collections) instead of sequentially, and Room scan-cache writes are batched
+  into a single `upsertAll()` instead of one transaction per app — faster
+  first-scan time on devices with many installed apps. `ScanCacheDao` gains
+  `upsertAll(List<ScanCacheEntity>)`. New
+  `DeviceScanInstrumentedTest` (7 instrumented tests) on the emulator covers
+  SHA-256 digest correctness, EICAR detection by the static pipeline,
+  benign-file non-detection, threat-scoring primitive detection, risk-engine
+  score bounds, detection-category validity, and graceful handling of missing
+  APK paths. 374 unit tests + 17 instrumented tests, all green. versionCode 71.
 
 **Note on "no telemetry":** the app has no telemetry by default. Activity
 reporting (Settings → Activity reporting) is opt-in per device and described in

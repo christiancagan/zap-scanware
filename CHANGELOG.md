@@ -5,6 +5,16 @@ All notable changes to MalwareShield are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.47.8] - 2026-10-16
+
+### Added
+- **Device scan performance:** the deep-scan app-analysis loop now runs in parallel (bounded `limitedParallelism(4)` worker pool over thread-safe collections) instead of sequentially, cutting first-scan time on devices with many installed apps. Room scan-cache writes are batched into a single `upsertAll()` instead of one transaction per app.
+- **New instrumented tests:** `DeviceScanInstrumentedTest` (7 tests) covers SHA-256 digest correctness, EICAR detection by the static pipeline, benign-file non-detection, threat-scoring primitive detection, risk-engine score bounds, detection-category validity, and graceful handling of missing APK paths. Runs on emulator via `connectedDebugAndroidTest`.
+
+### Changed
+- `ScanCacheDao` gains `upsertAll(List<ScanCacheEntity>)` for batched cache writes.
+- `FullDeviceScanner.deepScan` collects `ScanCacheEntity` rows and writes them in one batch.
+
 ## [1.47.7] - 2026-10-16
 
 ### Added
