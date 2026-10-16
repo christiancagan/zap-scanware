@@ -5,6 +5,25 @@ All notable changes to MalwareShield are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.47.6] - 2026-10-16
+
+### Added
+- **Threat details on the dashboard.** The Protection-status Threats card is
+  now tappable ("Tap to view") and opens the latest scan's threat list:
+  file/app name, package or file type, category and risk score, threat level
+  and signature - backed by that session's history rows, with a History
+  shortcut for the full list.
+
+### Fixed
+- **VPN heating / battery use.** Every repeat DNS query (browser retries,
+  dual-stack duplicates, app telemetry) used to pay a full classify plus a
+  fresh upstream UDP socket and radio time. New TTL-bounded `DnsCache`
+  (512 entries, 20-120 s, only NOERROR answers with real TTLs) answers
+  repeats from RAM - no classification, no socket, no radio. Block verdicts
+  never enter the cache, so a newly blocked domain takes effect after at
+  most the 120 s cap. Non-DNS traffic never enters the tunnel (only a /32
+  and /128 route for the virtual resolvers), so it costs nothing.
+
 ## [1.47.5] - 2026-10-14
 
 ### Fixed

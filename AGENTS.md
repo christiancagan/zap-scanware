@@ -1016,6 +1016,17 @@ Implements Phase 1 and Phase 2 of `ENHANCEMENT_PLAN_12.md`.
   `isNotificationPolicyAccessGranted`. Also added worker `SCAN_START` parity
   (mode + trigger, shared correlation ID). Verified on-device via Run now:
   trigger/start/finish (seq 85-87) persisted. 366 unit tests. versionCode 68.
+- **v1.47.6** (dashboard threats + VPN heat): Threats `GradientStat` takes
+  optional `onClick` ("Tap to view" hint); `DashboardViewModel`
+  `threats/loadThreats/clearThreats` reads the latest COMPLETED session's
+  rows via `ScanHistoryDao.getBySession`; `ThreatsDialog` lists name,
+  package/type, category+risk, level+signature (20-cap, History shortcut).
+  VPN heat: repeat DNS (retries, dual-stack dupes, telemetry) each cost a
+  classify + upstream socket + radio. New `DnsCache` (512 entries, TTL clamp
+  20-120 s, NOERROR+answers only, txid patched on serve, `DnsCacheTest` 5)
+  wired into `processDnsQuery`; blocks never cached. Verified on-device:
+  dialog lists the SUSPICIOUS finding; VPN Active, DNS resolves through the
+  tunnel, no crashes. 371 unit tests. versionCode 69.
 
 **Note on "no telemetry":** the app has no telemetry by default. Activity
 reporting (Settings → Activity reporting) is opt-in per device and described in
