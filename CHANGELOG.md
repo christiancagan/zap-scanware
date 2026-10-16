@@ -5,6 +5,11 @@ All notable changes to MalwareShield are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.47.9] - 2026-10-16
+
+### Added
+- **Device scan continues when the phone sleeps:** manual and scheduled scans now acquire a partial `WAKE_LOCK` for the scan duration, so Doze / app standby no longer suspends the scan coroutine when the screen turns off. Added `android.permission.WAKE_LOCK` to the manifest and a new `ScanWakeLock` helper (reentrant, released in `finally`).
+
 ## [1.47.8] - 2026-10-16
 
 ### Added

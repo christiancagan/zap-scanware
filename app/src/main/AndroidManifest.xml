@@ -7,6 +7,11 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" android:minSdkVersion="33" />
 
+    <!-- Device scan must keep running when the screen turns off: a partial wake
+         lock prevents the CPU from sleeping mid-scan (Doze/app-standby would
+         otherwise kill the scan coroutine). Acquired for the scan duration only. -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
     <!-- Safe Browse persistence: restart link protection after reboot and keep
          the DNS filter alive as a foreground service when the app is closed. -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />

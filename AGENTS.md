@@ -1048,8 +1048,15 @@ CONTRIBUTING. 374 unit tests. versionCode 70.
   `DeviceScanInstrumentedTest` (7 instrumented tests) on the emulator covers
   SHA-256 digest correctness, EICAR detection by the static pipeline,
   benign-file non-detection, threat-scoring primitive detection, risk-engine
-  score bounds, detection-category validity, and graceful handling of missing
-  APK paths. 374 unit tests + 17 instrumented tests, all green. versionCode 71.
+score bounds, detection-category validity, and graceful handling of missing
+APK paths. 374 unit tests + 17 instrumented tests, all green. versionCode 71.
+- **v1.47.9** (scan continues when phone sleeps): manual and scheduled scans now
+  acquire a partial `WAKE_LOCK` for the scan duration via new `ScanWakeLock`
+  (reentrant, released in `finally`), so Doze / app standby no longer suspends
+  the scan coroutine when the screen turns off. Added `android.permission.WAKE_LOCK`
+  to the manifest and wired the wake lock into `DeviceScanViewModel.scan()` and
+  `ScheduledScanWorker.doWork()`. 374 unit tests + 17 instrumented tests, all
+  green. versionCode 72.
 
 **Note on "no telemetry":** the app has no telemetry by default. Activity
 reporting (Settings → Activity reporting) is opt-in per device and described in
