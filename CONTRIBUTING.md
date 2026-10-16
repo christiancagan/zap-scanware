@@ -22,6 +22,24 @@ Thank you for your interest in contributing to MalwareShield! This document prov
    ```
 4. Sync Gradle: `./gradlew` or click "Sync Now" in Android Studio
 
+### Threat-intel keys (built-in defaults)
+The app ships with built-in MalwareBazaar / VirusTotal defaults that apply
+when the user has not pasted their own key in Settings (a saved key always
+wins at runtime). Supply them at build time — never commit a real key
+(baked `BuildConfig` strings are readable from the APK):
+```bash
+# Per-command (preferred for releases):
+./gradlew assembleRelease \
+  -PMALWAREBAZAAR_API_KEY="$MALWAREBAZAAR_API_KEY" \
+  -PVIRUSTOTAL_API_KEY="$VIRUSTOTAL_API_KEY"
+
+# Or persistently (never committed): environment variables
+# MALWAREBAZAAR_API_KEY / VIRUSTOTAL_API_KEY, or user-global
+# ~/.gradle/gradle.properties entries with the same names.
+```
+Blank (the default) means no built-in key: cloud lookups stay off until the
+user configures one, exactly as before.
+
 ### Build
 ```bash
 # Debug build

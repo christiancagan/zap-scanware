@@ -5,6 +5,18 @@ All notable changes to MalwareShield are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.47.7] - 2026-10-16
+
+### Added
+- **Built-in MalwareBazaar / VirusTotal defaults.** New
+  `MALWAREBAZAAR_API_KEY` build config (env / `-P` flag /
+  `~/.gradle/gradle.properties`, never committed) joins the existing
+  `VIRUSTOTAL_API_KEY` default. Every Bazaar and VT call site now resolves
+  user-saved key first, built-in second, blank last - so cloud intel works
+  out of the box and any pasted key still overrides it. Settings shows the
+  key source (App setting / Built-in / Not set) for both providers; key
+  supply is documented in CONTRIBUTING.
+
 ## [1.47.6] - 2026-10-16
 
 ### Added

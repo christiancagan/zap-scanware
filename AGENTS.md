@@ -1027,6 +1027,18 @@ Implements Phase 1 and Phase 2 of `ENHANCEMENT_PLAN_12.md`.
   wired into `processDnsQuery`; blocks never cached. Verified on-device:
   dialog lists the SUSPICIOUS finding; VPN Active, DNS resolves through the
   tunnel, no crashes. 371 unit tests. versionCode 69.
+- **v1.47.7** (built-in intel keys): new `MALWAREBAZAAR_API_KEY` build field
+  (`-P` flag / env / user-global `gradle.properties`, never committed) joins
+  the existing `VIRUSTOTAL_API_KEY` default. `resolveEffectiveApiKey`
+  (pure, `ApiKeyFallbackTest` 3) = user-saved → built-in → blank; exposed via
+  `PreferenceManager.effectiveMalwareBazaarAuthKey()` /
+  `effectiveVirusTotalApiKey()` and `ReputationService.malwareBazaarAuthKey()`
+  + `malwareBazaarKeySource()`. All Bazaar call sites (service check +
+  deferred phase, `MalwareRepository` x2, `SignatureFeedWorker`, settings
+  save/sync) and the telemetry VT flag now resolve effective keys, so cloud
+  intel works with zero user setup and any pasted key still overrides.
+  Settings shows key source for both providers; key supply documented in
+  CONTRIBUTING. 374 unit tests. versionCode 70.
 
 **Note on "no telemetry":** the app has no telemetry by default. Activity
 reporting (Settings → Activity reporting) is opt-in per device and described in

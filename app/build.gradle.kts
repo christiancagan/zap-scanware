@@ -13,6 +13,17 @@ val vtApiKey: String =
         ?: System.getenv("VIRUSTOTAL_API_KEY")
         ?: ""
 
+// Built-in MalwareBazaar Auth-Key default (abuse.ch). Supplied at build time
+// via `-PMALWAREBAZAAR_API_KEY=...`, `gradle.properties` (e.g. user-global
+// `~/.gradle/gradle.properties`, never committed), or the environment —
+// blank means no built-in key. A user-pasted key in Settings always wins at
+// runtime. Never commit a real key: baked BuildConfig strings are readable
+// from the APK.
+val bazaarApiKey: String =
+    (findProperty("MALWAREBAZAAR_API_KEY") as String?)
+        ?: System.getenv("MALWAREBAZAAR_API_KEY")
+        ?: ""
+
 // Base64 X.509 SubjectPublicKeyInfo (ECDSA P-256) used to verify signed threat
 // feeds. Blank => feed signatures are optional (unsigned feeds accepted).
 val feedPublicKey: String =
@@ -53,10 +64,11 @@ android {
         applicationId = "com.zapscanware"
         minSdk = 26
         targetSdk = 34
-        versionCode = 69
-        versionName = "1.47.6"
+        versionCode = 70
+        versionName = "1.47.7"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "VIRUSTOTAL_API_KEY", "\"$vtApiKey\"")
+        buildConfigField("String", "MALWAREBAZAAR_API_KEY", "\"$bazaarApiKey\"")
         buildConfigField("String", "FEED_PUBLIC_KEY", "\"$feedPublicKey\"")
     }
 
