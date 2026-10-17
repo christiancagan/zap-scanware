@@ -108,7 +108,7 @@
         </div>
         <h1>Zap Scanware</h1>
         <p class="tagline">Lightweight Android malware protection</p>
-        <p class="version">Version 1.47.9 (build 72) · Android 8.0+</p>
+        <p class="version">Version 1.47.10 (build 73) · Android 8.0+</p>
 
         <a class="dl-btn" href="zap-scanware-debug.apk" download="zap-scanware-debug.apk">
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -120,17 +120,19 @@
 
         <div class="hashbox">
             <div class="lbl">SHA-256 checksum</div>
-            <code id="sha256">FA9C6A717ED6867E77E86F222215FA99091ED87D93C709E1D9588DC060BD59D3</code>
+            <code id="sha256">542F887E5944B07739BC3286FAB8D32407999356A67C018BA7465F5D7CAE606B</code>
             <button class="copy-btn" onclick="copyHash()">Copy checksum</button>
         </div>
 
         <p class="meta">
-            <span>18.8 MB</span> · <span>APK</span> · <span>Signed</span> · <span>v1.47.9 (72)</span>
+            <span>18.8 MB</span> · <span>APK</span> · <span>Signed</span> · <span>v1.47.10 (73)</span>
         </p>
 
         <ul class="features">
+            <li>Scans keep running when your phone sleeps: manual and scheduled scans hold a partial wake lock so Doze can't pause them</li>
+            <li>Fixed: local signature detections keep their real severity — findings now show the correct high-risk level (verified with industry-standard EICAR test-file detection)</li>
             <li>Faster deep scans: app analysis now runs in parallel (bounded worker pool) and Room scan-cache writes are batched instead of one transaction per app</li>
-            <li>New on-device instrumented tests for the scan pipeline (EICAR detection, SHA-256 digest, threat scoring, risk bands, detection categories)</li>
+            <li>On-device instrumented tests for the scan pipeline (EICAR detection end to end, wake-lock survival, SHA-256 digest, threat scoring, risk bands, detection categories)</li>
             <li>Built-in threat-intel keys: MalwareBazaar and VirusTotal work out of the box, and any key you save still overrides them</li>
             <li>Dashboard Threats card opens the threat list (file/app name, category, risk, signature); Safe Browse caches DNS answers so the VPN uses less CPU, radio and battery</li>
             <li>Scheduled scans are fully logged (trigger, start, finish share one ID) and no longer silently skip when Do Not Disturb can't be read</li>

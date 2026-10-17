@@ -1057,6 +1057,27 @@ APK paths. 374 unit tests + 17 instrumented tests, all green. versionCode 71.
   to the manifest and wired the wake lock into `DeviceScanViewModel.scan()` and
   `ScheduledScanWorker.doWork()`. 374 unit tests + 17 instrumented tests, all
   green. versionCode 72.
+- **v1.47.10** (EICAR detection tests + threat-level merge fix): two real bugs
+  found by new EICAR tests. (1) `ScanDispatcher.merge` chose the highest level
+  via `maxByOrNull { it.ordinal }`, but `ThreatLevel.UNKNOWN` has the highest
+  ordinal — and `GenericFileAnalyzer` runs on every file contributing its
+  default `UNKNOWN` — so the merged report's `threatLevel` was **always**
+  `UNKNOWN`, erasing signature-rule `HIGH`/`CRITICAL` (finding gradients,
+  `highRiskCount` and the static risk weight were all understated). The merge
+  now folds with `ThreatScoring.max`, which ranks `UNKNOWN` lowest. (2)
+  `RiskEngine.ANALYSIS_VERSION` bumped 1 → 2 so cached verdicts stored with
+  the wrong level are re-analyzed instead of reused. New EICAR coverage (the
+  harmless 68-byte industry-standard test file): `EicarDetectionInstrumentedTest`
+  (4, `ScanDispatcher` on an external-storage sample), `EicarOnDeviceScanTest`
+  (real `FullDeviceScanner.scan(DEEP)` asserting `/sdcard/Download/eicar.com`
+  surfaces as a malicious `EICAR_Test_File` finding), plus
+  `ScanWakeLockSmokeTest` (2, wake-lock lifecycle + survival of a real
+  screen-off/on cycle) and `scripts/verify-eicar-detection.ps1` for pushing
+  the sample to a device and confirming the alert manually. Hilt rule learned
+  the hard way: an `@EntryPoint` declared in `androidTest` is **not**
+  implemented by the app's `SingletonComponent` (ClassCastException) — reuse a
+  `main`-source entry point (`ScheduledScanWorker.ScanWorkerEntryPoint`).
+  374 unit tests + 24 instrumented tests, all green. versionCode 73.
 
 **Note on "no telemetry":** the app has no telemetry by default. Activity
 reporting (Settings → Activity reporting) is opt-in per device and described in

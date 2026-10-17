@@ -5,6 +5,49 @@ All notable changes to MalwareShield are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.47.10] - 2026-10-17
+
+### Fixed
+- **Signature threat levels were silently erased.** `ScanDispatcher.merge`
+  picked the highest level with `maxByOrNull { it.ordinal }`, but
+  `ThreatLevel.UNKNOWN` has the *highest* enum ordinal. Because
+  `GenericFileAnalyzer` runs on every file and always contributes its default
+  `UNKNOWN`, the merged report's `threatLevel` was **always** `UNKNOWN` —
+  wiping the `HIGH`/`CRITICAL` produced by a signature-rule hit. The merge now
+  folds levels with `ThreatScoring.max`, which ranks `UNKNOWN` as the lowest
+  value (its own KDoc already warned about this ordinal trap). Local detections
+  — including EICAR — now keep their real severity, so finding cards get the
+  correct gradient, `highRiskCount` counts them, and the risk score receives
+  the full static weight.
+- **Stale scan caches invalidated.** `RiskEngine.ANALYSIS_VERSION` bumped
+  `1` → `2` so cached file/app verdicts that stored the wrong threat level are
+  re-analyzed on the next scan instead of being reused.
+
+### Added
+- **EICAR sample-malware detection coverage.** EICAR (the harmless 68-byte
+  industry-standard anti-malware test file) is now covered end to end:
+  - `EicarDetectionInstrumentedTest` (4 tests) exercises `ScanDispatcher` on
+    an external-storage EICAR file and asserts detection, threat level, the
+    `.com` scan target, and finding-creation conditions.
+  - `EicarOnDeviceScanTest` runs the **real** `FullDeviceScanner.scan(DEEP)`
+    with "All files access" granted and asserts the sample in
+    `/sdcard/Download` surfaces as a malicious, high-risk finding named
+    `EICAR_Test_File`.
+  - `ScanWakeLockSmokeTest` (2 tests) verifies the scan wake lock's
+    reentrant acquire/release lifecycle and that it survives a real
+    screen-off/on cycle.
+  - `scripts/verify-eicar-detection.ps1` pushes the sample to a connected
+    device, installs the app, grants storage access, launches the app and
+    prints the steps to visually confirm the alert (`-Clean` removes it).
+- **Instrumented-test fix:** Hilt `@EntryPoint` interfaces used from
+  `androidTest` must be declared in the `main` source set — an entry point
+  declared in `androidTest` is not implemented by the app's `SingletonComponent`
+  and fails with `ClassCastException`. Both new tests now reuse the existing
+  `ScheduledScanWorker.ScanWorkerEntryPoint`.
+
+### Notes
+- 374 unit tests + 24 instrumented tests, all green on the API 34 emulator.
+
 ## [1.47.9] - 2026-10-16
 
 ### Added
