@@ -1,0 +1,23 @@
+# --- Gradle / Android build outputs ---
+.gradle/
+build/
+app/build/
+captures/
+.externalNativeBuild/
+.cxx/
+local.properties
+
+# --- IDE ---
+.idea/
+*.iml
+.DS_Store
+
+# --- Secrets (never commit real API keys) ---
+# Put VIRUSTOTAL_API_KEY in local.properties or CI env, not in git.
+*.keystore
+*.jks
+gradle.properties.local
+
+# --- Logs / temp ---
+*.log
+*.tmp

@@ -1,0 +1,18 @@
+{
+  "format": "malwareshield-threat-feed/1",
+  "version": 1,
+  "updated": "2026-09-14T00:00:00Z",
+  "sha256": [
+    "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  ],
+  "malicious_domains": [
+    "malware-distribution.example",
+    "fake-login.example"
+  ],
+  "suspicious_domains": [
+    "short-url.example"
+  ],
+  "dex_patterns": [
+    "Lcom/example/evil/Payload;"
+  ]
+}

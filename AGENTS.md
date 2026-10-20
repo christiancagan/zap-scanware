@@ -1,0 +1,1275 @@
+# MalwareShield - Mobile Malware Endpoint Protection
+
+## Overview
+Lightweight Android malware detection and prevention application built with Kotlin and modern Android architecture. Supports manual scanning, background scanning, APK static analysis, SHA-256 hashing, VirusTotal integration, URL/site validation, local scan history, and privacy-first operation. There is no login: the app opens straight to the dashboard (see §27).
+
+## Technology Stack
+| Component | Technology | Rationale |
+|-----------|-----------|-----------|
+| **Language** | Kotlin 1.9+ | Official Android, null-safe, coroutines |
+| **UI** | Jetpack Compose | Declarative, minimal CPU/GPU overhead |
+| **Architecture** | MVVM + Clean Architecture | Separation of concerns, testable |
+| **Database** | Room (SQLite) | Lightweight, local-first, encrypted |
+| **Background** | WorkManager | Battery-efficient constraints |
+| **Networking** | Retrofit + OkHttp | Lightweight HTTP client |
+| **DI** | Hilt (Dagger) | Minimal overhead dependency injection |
+| **Security** | Android Keystore | Hardware-backed encryption |
+| **Coroutines** | Kotlin Coroutines + Flow | Async without thread overhead |
+| **API** | VirusTotal v3 + Google Safe Browsing | Industry-standard threat intelligence |
+| **Crypto** | Android Keystore AES-GCM (`PrivacyCrypto`) | Encrypt local secrets at rest; no login gate |
+
+## Features
+
+### 1. Manual Malware Scanning
+File picker → SHA-256 → APK analysis → VirusTotal lookup → Threat classification
+
+### 2. Background Scanning
+WorkManager with battery/network constraints
+
+### 3. APK Static Analysis
+Package metadata, permissions, certificate fingerprint, DEX pattern detection
+
+### 4. SHA-256 File Hashing
+Streaming 8KB buffer, no full file loading into RAM
+
+### 5. VirusTotal Integration
+Retrofit-based API, file upload and hash-based report lookup
+
+### 6. URL/Site Validation
+SSL/TLS verification, phishing detection, domain reputation, homograph attack detection, safety scoring (0-100), Google Safe Browsing integration
+
+### 7. Authentication — removed (v1.24.1)
+There is no login, password or biometric unlock gate. The app opens straight to
+the dashboard. `BiometricGateScreen`, `AuthViewModel`, `AuthManager` and
+`BiometricAuthenticator` were deleted; the `USE_BIOMETRIC` permission was
+dropped. `PrivacyCrypto` still encrypts local secrets with an Android Keystore
+AES-GCM key, but that key no longer requires user authentication or StrongBox
+(those flags crashed startup on many devices — see §27).
+
+### 8. Local Scan History
+Room database with Flow, encrypted with Android Keystore
+
+### 9. Minimal Resource Consumption
+CPU, RAM, Battery, Network optimization
+
+### 10. Privacy-First Operation
+All data stored locally only, no telemetry by default. Optional opt-in
+"Activity reporting" to a central dashboard exists since v1.46.0 (see §54 and
+`PRIVACY.md`); it is off until the user enrolls.
+
+### 11. Clean Material Design 3 UI
+Dark/Light theme, navigation drawer (Dashboard + Scan + Validate + History), threat badges
+
+### 12. Multi-Format Static Analysis
+Format-aware scanning beyond APKs (see `ENHANCEMENT_PLAN.md`):
+- **Identification**: magic-byte sniffing overrides disguised extensions
+  (`FileTypeIdentifier`).
+- **Analyzers** (`core/analysis/analyzers/`): APK, `.apks`/`.xapk`, `.aab`,
+  `.dex`/`.odex`, `.jar`/`.class`, Windows PE, scripts, archives (recursive,
+  bomb-guarded), macro/active-content documents.
+- **Rule engine**: YARA-compatible subset (bundled + feed rules) run on every
+  file (`RuleEngine`); feed schema v2 adds `yara_rules`.
+- **PE**: header/section parse, packer + writable/executable sections,
+  per-section entropy, keylogger/injection/downloader imports.
+- **Archives**: recursive ZIP/GZIP/TAR member analysis with `BombGuard` and
+  double-extension disguise detection.
+- No execution; streaming, bounded, fail-safe.
+
+### 13. Hash Reputation & Content Filter
+- **Reputation pipeline** (`core/reputation/ReputationService`): feeds →
+  cache → MalwareBazaar → VirusTotal (rate-limited, 24h cache). Used by the
+  manual scan path and the full device scan.
+- **Apps**: every installed app's APK is hashed and reputation-checked
+  (`InstalledAppScanner.apps` → `FullDeviceScanner`), alongside permission
+  scoring. Malicious findings are persisted to scan history.
+- **Files**: every storage target is hashed and reputation-checked during the
+  device scan.
+- **Content filter** (`core/content/`): category classifier (adult, gambling,
+  violence, drugs, piracy, malware) + custom blocklist; user chooses
+  **Notify** or **Block**. Enforced by `UrlGuardAccessibilityService`, which
+  launches `BlockActivity` on a blocked category.
+- **Scan modes** (`ScanMode`): Device scan offers **Quick** (local: app
+  permission/signature scoring + offline APK hash feed, no network) and
+  **Deep** (default: full multi-format analysis + cloud reputation). Persisted
+  via `PreferenceManager.scanMode`.
+- Configured in Settings → *Content filter*; requires the accessibility service
+  to be enabled. See `ENHANCEMENT_PLAN_2.md`.
+
+### 14. Link Protection, Download Scanning & UI
+- **Safe Browse** (`core/safebrowse/SafeBrowseVpnService`): a DNS-filtering
+  `VpnService` that classifies each queried domain with `ContentFilter` and
+  returns NXDOMAIN for blocked/malware names — a real "scan before open"
+  (domain granularity; IPv4+IPv6, UDP+TCP answered since v1.46.3; DoH/DoT can
+  bypass). Enabled in Settings → Safe Browse.
+- **Download scanning** (`core/downloads/`): `DownloadMonitor` observes new
+  downloads and `DownloadScanWorker` analyzes + reputation-checks them, then
+  notifies and records to history. Toggle: Settings → Scan downloaded files.
+- **UI**: APK scanner trimmed (no "any file"); History/Schedule/Guide modernized
+  (gradient heroes, live countdown, searchable guide); URL Validator redesigned
+  with an off-main safety score. See `ENHANCEMENT_PLAN_3.md`.
+
+### 15. Performance & Storage Hygiene
+- **`core/perf/CacheManager`**: reports cache/temp size, clears temporary files,
+  clears the whole cache, and removes stale scratch files (24h) on startup.
+- Temp artifacts use recognized prefixes (`scan-`, `file-`, `dl_scan_`,
+  `ms_pkg_`, `ms_arc_`) and are deleted in `finally` / after use.
+- `MalwareShieldApp.onTrimMemory` drops rebuildable in-memory caches under
+  pressure; user data is never touched.
+- Settings → *Storage & performance* shows sizes and offers manual clear.
+- See `PERFORMANCE.md` for the rules and runbook.
+
+### 16. Detection hardening (QC remediation)
+A malware-detection QC review (see `ENHANCEMENT_PLAN_4.md`) found the scanner
+was a heuristic + cloud-hash triage tool rather than a virus scanner. The
+following were implemented in v1.14.0:
+
+- **Unified threat scoring** (`core/security/ThreatScoring`): DEX/API
+  indicators are now split into *malicious primitives* (dynamic loaders,
+  `Runtime.exec`, root shell, silent install, accessibility/device-admin abuse),
+  *sensitive APIs* (SMS, IMEI/IMSI, contacts, location, camera/mic) and
+  *capabilities* (WebView, sockets, crypto). A single capability is no longer
+  reported CRITICAL — the old logic flagged almost every real app. All DEX
+  analyzers (APK, DEX, JAR, AAB) share this scoring so verdicts are consistent.
+- **YARA rules on the manual APK scan**: `MalwareRepository.scanAPK` now runs
+  `SignatureRuleAnalyzer` (bundled + feed rules), which previously only ran on
+  the generic/device-scan paths. The main "Select APK" flow now matches rules
+  (including EICAR).
+- **Installed-app code analysis**: the deep device scan now runs the full
+  `ScanDispatcher` pipeline on each non-system installed APK, not just
+  permission scoring + hash reputation.
+- **Expanded bundled rules**: `BundledRules` adds Android dropper, premium-SMS,
+  accessibility-abuse, overlay-phishing, device-admin ransomware and silent
+  installer families plus keylogger/ransomware PE heuristics.
+- **Opt-in VirusTotal upload**: unknown files (hash not in feeds/VT) can be
+  submitted for multi-engine analysis via Settings → *Upload unknown files to
+  VirusTotal* (default OFF; requires a VT API key). Fixes the previous gap where
+  novel samples were never submitted and read as "clean".
+- **Wider bounded coverage**: rule scan cap 16 → 32 MB; device-scan file cap
+  50 → 100 MB and 300 → 500 files.
+- **Tests**: `ThreatScoringTest` locks the scoring thresholds (10 cases).
+
+A follow-up (v1.15.0, see `ENHANCEMENT_PLAN_5.md`) closed the remaining open
+items:
+
+- **Prioritized cloud-lookup queue** (`core/reputation/CloudLookupQueue` +
+  `CloudQueuePolicy`): the device scan scores everything with the free sources,
+  then spends the limited VirusTotal quota on the highest-risk candidates and
+  defers the rest. `ReputationService.check(hash, includeVirusTotal)` and the
+  `vtChecked` cache flag keep local-only verdicts from masking cloud lookups.
+- **Background continuation** (`data/repository/CloudLookupWorker`): a
+  WorkManager worker drains the queue in rate-limited batches, records malicious
+  results to history, notifies, and reschedules while items remain. Shares the
+  singleton queue via `core/reputation/CloudLookupGraph`.
+- **Signed feeds** (`core/signatures/SignatureVerifier`): when
+  `BuildConfig.FEED_PUBLIC_KEY` is set, remote feeds must carry a valid
+  `X-Zap-Signature` ECDSA-P256/SHA-256 header or are rejected. `FeedStatus`
+  exposes `signatureRequired`/`verifiedSources`; `DEFAULT_FEED_URLS` is the
+  operator feed hook.
+- **Broader baseline**: bundled DEX patterns now use
+  `ThreatScoring.ALL_DEX_PATTERNS`; suspicious-domain list adds abused
+  free-DNS/tunneling/paste services.
+- **UI**: device-scan summary shows cloud checked/queued; Settings → Threat
+  intelligence shows VT slots, queue depth, and a clear-queue action.
+- **Tests**: `CloudQueuePolicyTest` (6) and `SignatureVerifierTest` (4).
+
+### 17. MalwareBazaar integration (v1.16.0)
+abuse.ch now requires an `Auth-Key` header on every request, so the old keyless
+lookup was broken. See `ENHANCEMENT_PLAN_6.md`.
+
+- **Auth-Key**: `PreferenceManager.malwareBazaarAuthKey` (stored encrypted via
+  `PrivacyCrypto`); `MalwareBazaarClient.lookupHash(api, sha256, authKey)` sends
+  the header and returns null when no key is set. Settings has a masked key field.
+- **Recent-detections mirror** (`core/signatures/MalwareBazaarFeed`): pulls
+  `recent_detections` (≤168 h), validates/lowercases SHA-256, persists
+  `{sha256, family, tags, first_seen}` to `filesDir/mb_signatures.json`.
+  `SignatureFeedManager.isKnownMaliciousHash` now also matches this mirror, so
+  the whole app gets real offline hashes. `MalwareBazaarFeedParser` is pure and
+  tested.
+- **Scheduling**: the daily `SignatureFeedWorker` refreshes the mirror when a key
+  is configured; Settings → Threat intelligence has Save/Sync and a live count.
+- **Tests**: `MalwareBazaarFeedParserTest` (5).
+
+### 18. Deep app-scan completeness (v1.17.0)
+See `ENHANCEMENT_PLAN_7.md`. The pipeline is now auditable end to end.
+
+- **Terminal per-app coverage** (`core/security/AppScanAudit.kt`):
+  `AppAnalysisCoverage` = `FULL` / `PERMISSION_ONLY` / `ANALYSIS_FAILED` /
+  `NOT_ANALYZED`; `AppCloudDisposition` = `NOT_APPLICABLE` / `CHECKED` /
+  `QUEUED` / `DEFERRED` / `FAILED` / `UNAVAILABLE`; `AppScanOutcome` =
+  `MALICIOUS` / `SUSPICIOUS` / `CLEAN` / `UNKNOWN` / `QUEUED` / `DEFERRED` /
+  `SKIPPED`. Every enumerated app gets exactly one audit record.
+- **No silent drops**: `InstalledAppScanner` records packages without
+  `applicationInfo` in `DeviceScanResult.skippedPackages`.
+- **Reputation health** (`core/reputation/ReputationReadiness`): network,
+  VirusTotal key/quota, MalwareBazaar key, and mirror freshness produce
+  `blockingIssues` shown on the device-scan summary.
+- **Honest cloud verdicts**: `ReputationVerdict.vtChecked` now means VirusTotal
+  answered; new `vtLookupFailed` distinguishes failures; both persist through
+  `ReputationCache`. `CloudLookupQueue.DrainReport` reports `failed` /
+  `rateLimited`.
+- **Bounded retries**: `CloudContinuationPolicy.MAX_ATTEMPTS = 10`.
+- **Audit report** (`core/security/AppScanAuditReport.kt`): per-scan JSON in
+  `filesDir/scan-audits/` (newest 20), path exposed via
+  `FullScanResult.auditReportPath`.
+- **Tests**: `AppScanAuditTest`, `ReputationReadinessTest`,
+  `CloudContinuationPolicyTest`, `AppScanAuditPersistenceTest` (112 total).
+
+### 19. Durable hash index, MalwareBazaar per-hash, offline feeds (v1.18.0)
+See `ENHANCEMENT_PLAN_8.md`.
+
+- **Durable hash index** (`core/security/HashIndex`): SHA-256 → package/path/
+  verdict/last-seen stored in `filesDir/hash_index.json` (survives cache clears).
+  `AppScanAudit` now carries `sha256` so a recheck needs no re-hash.
+- **Recheck** (`core/security/RecheckService` + "Recheck known hashes" in the
+  device-scan UI): resolves from the index and skips the network for hashes that
+  already have a terminal verdict; reports reused/looked-up/quota-saved.
+- **MalwareBazaar per-hash**: typed `BazaarOutcome` (Found/NotFound/Unauthorized/
+  RateLimited/Error) — an invalid key is no longer indistinguishable from a
+  clean hash. Added `MalwareBazaarPacer` (fair-use limiter + per-scan budget)
+  and `MalwareBazaarNegativeCache` (7-day negative cache for NotFound).
+- **MalwareBazaar mirror**: merge-with-retention (`MalwareBazaarMirrorPolicy`,
+  30 days / 20k cap) replaces the old full-replace that forgot older hashes;
+  incremental lookback, ETag persistence, failures preserve good data, richer
+  `Status`.
+- **Offline URL feeds**: per-source status (one bad feed no longer masks healthy
+  ones), staleness indicator, and `DEFAULT_FEED_URLS` merged with user feeds.
+- **Tests**: `MalwareBazaarOutcomeTest`, `MalwareBazaarMirrorPolicyTest`,
+  `HashIndexTest`, `MalwareBazaarPacerTest`, `FeedFreshnessTest` (148 total).
+
+### 20. Finding actions, Gson migration, coverage honesty, cleanup (v1.19.0)
+See `ENHANCEMENT_PLAN_9.md`.
+
+- **Remove / Allow on every finding** (`DeviceScanScreen.FindingCard`):
+  `Remove` deletes the file (and forgets its hash in `HashIndex`) or fires the
+  uninstall intent for apps; `Allow` persists a `FindingAllowlist` entry
+  (`filesDir/allowlist.json`, hash primary + package/path fallback) that
+  suppresses the item in future scans, cloud-queue candidates, and rechecks.
+  Audits keep an "allowed" reason; nothing is falsified.
+- **Gson migration**: `ReputationCache`, `CloudLookupQueue`, `MalwareBazaarFeed`,
+  `EventLogger`, `ProviderKeyManager` moved off `org.json` (untestable stubs on
+  JVM) to Gson with pure codecs; 6 new test suites. `SignatureFeedManager`
+  remote parsing stays on org.json (follow-up).
+- **Coverage honesty**: device-scan hero/guide/mode strings now state the
+  bounded truth (QUICK scores apps without hashing; DEEP hashes non-system
+  APKs; storage sweep covers download/media dirs, ≤500 files / ≤100 MB;
+  system/private partitions unreachable without root). `ApkFinder` adds DCIM /
+  WhatsApp / Bluetooth / Movies / Music dirs and reports `truncated`; the
+  result card shows a scope line (walk vs MediaStore-only, cap warning).
+- **Cleanup** (every removal reference-checked): deleted dead `ScanUseCases`,
+  `SafeBrowsingApiService`, `FilePicker` composable, `ScanProgressIndicator`,
+  legacy v2 VT models, orphan `core/`, `activity_main.xml`, 2 drawable icons,
+  placeholder `google-services.json`, `PAGES.md`/`INSTALL.md`; pruned
+  strings/colors; moved the feed fixture to `src/test/resources`; removed 13
+  unused Gradle deps (navigation, compose-tooling, lifecycle-compose, mockito,
+  truth, coroutines-test, androidTest set). APK shrank 21.3 → 19.3 MB.
+- **Tests**: 180 total, 0 failures.
+
+### 21. Scanner requirements: RiskEngine, categories, incremental Room cache (v1.20.0)
+See `ENHANCEMENT_PLAN_10.md` (assessment: 1 achieved / 9 partial / 7 missing).
+
+- **Room inventory + scan cache + sessions** (DB v3, non-destructive
+  migration): `AppInventoryEntity` (17 fields incl. UID, installer, times,
+  components, cert, SDKs, USER/SYSTEM/UPDATED_SYSTEM), `ScanCacheEntity`
+  (apkHash, version, score, level, VT JSON, analysis version, category),
+  `ScanSessionEntity` (mode, totals per category, COMPLETED/CANCELLED).
+  `AppInventoryCollector` gathers everything Android permits per scan.
+- **Incremental scanning**: unchanged APK + current `ANALYSIS_VERSION` reuses
+  the cached verdict (no analysis, no reputation, no quota). QUICK orders
+  user-installed → previously suspicious → recently updated.
+- **Real cancellation**: retained scan `Job`, Cancel button, `yield()` in all
+  loops, `cancelUniqueWork("cloud_lookup")`, CANCELLED session with partial
+  counts + VIEW RESULTS / SCAN AGAIN.
+- **RiskEngine** (`core/security/RiskEngine`): weighted 0–100 (static 30,
+  perms 15, cert 10, indicators 15, reputation 15, VT 15) with a
+  corroboration cap (one lone signal never reaches High) and configurable
+  bands (Settings, defaults 40/60/80) + disclaimer. `DetectionClassifier`:
+  MALWARE needs feed/Bazaar/VT-quorum/corroborated-Critical; PUA-PUP via
+  adware/tracker/installer hints; SUSPICIOUS/LOW_REPUTATION/UNKNOWN/CLEAN.
+- **VT depth**: suspicious/undetected counts + `last_analysis_date` plumbed
+  through verdict → cache → findings; `VtSummary.display()` renders the
+  required `VirusTotal: 8/70; Malicious=8; Suspicious=1; Undetected=61; Last
+  Analysis=<date>` line; copy-hash button on every finding (ClipboardManager).
+  Thin `VirusTotalRepository` facade over the existing pipeline.
+- **New indicators**: BOOT receivers (single system query + explanation),
+  native-lib inventory + suspicious names, embedded URL/IP mining (2 MB cap),
+  standalone reflection scoring, package-naming (impersonation/entropy),
+  SMS+accessibility+installer combo rule — all explanations, none
+  auto-malicious (categories govern user-visible labels).
+- **UI**: idle Device Status card (persisted session), "Device scan is
+  running" + "Scanned files: X of Y", category summary table + View
+  Result/Done, per-app detail screen (score, hash+copy, VT line, permissions,
+  indicators, assessment, recommended actions, uninstall/remove/allow),
+  history sessions grouped Today/Yesterday/date and openable, notification
+  tap → detail.
+- **Notifications**: `device_threat` channel with the exact high-risk text,
+  shared `NotificationGate` (master toggle now actually enforced + per-key
+  cooldown, default 60 min), tap intents on all notifiers.
+- **Battery**: wifi-only cloud gate (default ON) in `ReputationService`,
+  UNMETERED worker constraints, feed-worker metered retry; analysis cache via
+  the Room gate.
+- **Tests**: 211 total, 0 failures.
+
+### 22. History detail, feed-codec migration, tree refresh (v1.21.0)
+- **History → detail**: every history row (finding list + session views) opens
+  the full app detail screen (`selectHistoryFinding` maps the row back to a
+  `DeviceFinding` + inventory lookup); detail back-navigation returns to the
+  originating tab. `scan_history` gains `riskScore` (DB v4, non-destructive)
+  so old rows render scores too.
+- **org.json fully eliminated** from production: `SignatureFeedManager`
+  remote parsing + cache now use the pure `ThreatFeedJson` Gson codec
+  (identical format behavior incl. legacy v1 acceptance), tested against the
+  real `sample-threat-feed.json` fixture (`ThreatFeedJsonTest`, 6 cases).
+- **Module tree refreshed** from disk (was listing long-removed auth screens).
+- **Tests**: 217 total, 0 failures.
+
+### 23. Production readiness fixes (v1.22.0)
+- **Release signing**: `signingConfigs["release"]` added to
+  `app/build.gradle.kts`, reading `KEYSTORE_PATH`, `KEYSTORE_PASSWORD`,
+  `KEY_ALIAS`, `KEY_PASSWORD` from environment variables first, then
+  `local.properties` (fallback keystore path `release-key.jks`).
+- **Network security**: `res/xml/network_security_config.xml` added with
+  certificate pinning for VirusTotal and MalwareBazaar.
+- **Biometric security**: `PrivacyCrypto` now uses `setUserAuthenticationRequired(true)`
+  and `setIsStrongBoxBacked(true)`. `BiometricAuthenticator` removed
+  `encryptWithBiometric()` and `decryptWithBiometric()` — all encryption
+  must be gated by a biometric ceremony via `authenticateWithCrypto()`
+  or `encryptWithPrompt()`.
+- **System app scanning**: `FullDeviceScanner` no longer skips code analysis
+  for system apps. All apps are analyzed equally.
+- **Cancellation fix**: `cancelScan()` now calls `cancelUniqueWork("cloud_lookup")`
+  to stop the background cloud lookup worker.
+- **ProGuard rules**: Added keeps for `ThreatScoring` patterns,
+  `BiometricAuthenticator`, `PrivacyCrypto`, and `APKAnalyzer` regex fields.
+- **Instrumented tests**: `app/src/androidTest/` restored with basic
+  activity and Compose UI tests.
+- **Documentation**: `CHANGELOG.md`, `CONTRIBUTING.md`, `docs/README.md`
+  updated with release build instructions.
+- **Version**: versionCode 26, versionName "1.22.0".
+- **Build script (Kotlin DSL)**: `lint {}` replaces the Groovy `lintOptions`
+  block; use `buildTypes { named("release") { ... } }` (a bare `release {}`
+  clashes with the `KotlinSourceSet.release` receiver). JUnit4 logging lives in
+  a top-level `tasks.withType<Test> { testLogging { ... } }`; do **not** call
+  `useJUnitPlatform()` — the unit tests are JUnit4.
+- **Tests**: 217+ total, 0 failures.
+
+### 24. Device Scan UX: coverage honesty, single control, destructive actions (v1.23.0)
+- **Coverage diagnosis**: a device scan showing a low file count (e.g. "28
+  files") is almost always because **"All files access" is off**. With scoped
+  storage, `ApkFinder.findScanTargets()` skips the filesystem walk and falls
+  back to MediaStore, which exposes only app-visible files. Installed apps are
+  enumerated separately (e.g. 93 apps + 28 visible files), so the totals are
+  correct but were mislabeled.
+- **Honest UI**: `DeviceScanScreen` shows a prominent red "File scanning is
+  limited" callout before the scan and a post-scan warning that names the
+  visible file count; the Device Status card now shows "Apps scanned: X · Files
+  scanned: Y · Mode: …" instead of a summed "Files scanned".
+- **Single control**: the "Scan mode" Quick/Deep chips set the mode and the hero
+  "Scan this device" button is the only trigger. The duplicate Quick Scan / Full
+  Scan buttons on the Device Status card were removed.
+- **Permission refresh**: a `LifecycleEventObserver` on `ON_RESUME` calls
+  `refreshAccess()`, so returning from system Settings updates the prompt.
+- **Destructive actions**: finding cards and `AppDetailScreen` label the action
+  **Uninstall** (apps) or **Delete** (files) and require an `AlertDialog`
+  confirmation. File delete in `DeviceScanViewModel.removeFinding` treats an
+  already-missing file as success, best-effort deletes the MediaStore row, drops
+  the hash from `HashIndex`, and reports clear failure guidance (grant All files
+  access) when the OS refuses.
+- **Version**: versionCode 27, versionName "1.23.0".
+
+### 24b. Scrollable screens fix (v1.23.1)
+- **Root cause**: several screens placed a `LazyColumn(modifier = fillMaxSize())`
+  *after* other content inside a plain `Column`. The lazy list was measured at the
+  full parent height, so it ran off the bottom of the non-scrolling column and
+  could not be scrolled.
+- **Fix**: `DeviceScanScreen` (results), `HistoryScreen`, `LogViewerScreen` and
+  `ApkFinderScreen` now use a **single top-level `LazyColumn`**, with header
+  sections as `item {}` and lists as `items(...)`. `HistoryScreen` computes its
+  grouped sessions outside the (non-composable) `LazyListScope` and keys items by
+  id. Dialogs remain outside the list.
+- **Rule**: never nest a `LazyColumn(fillMaxSize())` under non-weighted content in
+  a `Column`. Either use one root `LazyColumn`, or give the list `Modifier.weight(1f)`.
+- **Version**: versionCode 28, versionName "1.23.1".
+
+### 25. Performance & hot-path hardening (v1.23.2)
+- **Batched durable writes**: `HashIndex.record`/`updateVerdict` and
+  `ReputationCache.put` take `persist: Boolean = true`. Bulk callers
+  (`FullDeviceScanner`, `CloudLookupQueue.drain`, `RecheckService`) pass
+  `false` and call `flush()` once. Never serialize the whole JSON file per item.
+- **Bulk history insert**: `ScanHistoryDao.insertScans` +
+  `MalwareRepository.recordDeviceFindings`; `DeviceScanViewModel.persistSession`
+  writes all findings in one Room transaction.
+- **Preference snapshot**: `ReputationService.prefs()` TTL-caches the DataStore
+  reads used per hash on the scan hot path.
+- **Lazy screens**: `ScanScreen` now uses a single root `LazyColumn`.
+- **Removed dead code**: `ApkFinderScreen.kt` (never navigated to; `ScanScreen`
+  already provides find-and-scan).
+- **Tests**: added batched-persistence cases to `HashIndexTest` and
+  `ReputationCacheTest`.
+- **Version**: versionCode 29, versionName "1.23.2".
+
+### 26. Single-pass file reads (v1.24.0)
+- **`core/analysis/FileDigest.kt`**: `FileDigest(sha256, head)` and
+  `FileDigestReader.read(file, headLimitBytes)` — one 64 KB-chunk streaming pass
+  that computes SHA-256 and retains the first `headLimitBytes` for rule
+  matching. Fail-closed (`FileDigest.EMPTY`).
+- **`ScanDispatcher.dispatch(..., digest)` / `dispatchMember(..., digest)`**:
+  when a digest is supplied, `SignatureRuleAnalyzer.analyzeHead(head, size, type)`
+  runs on the already-read head instead of re-reading the file. Callers that do
+  not pass a digest behave exactly as before.
+- **`APKAnalyzer.collectSignals`**: one `ZipFile` pass collecting DEX signature
+  matches, `.so` names, and embedded URLs/IPs (caps: 100 MB DEX/entry for
+  patterns, 2 MB DEX total for strings). Replaces the old two-pass
+  `collectThreats` + `collectPackageSignals`.
+- **Call sites using one digest per file**: `FullDeviceScanner` (app + file
+  loops), `MalwareRepository.scanAPK` / `scanGenericFile`, `DownloadScanWorker`.
+  The cached-app gate still hashes first (required) and now reuses that digest
+  for analysis.
+- **Tests**: `FileDigestReaderTest` (6).
+- **Version**: versionCode 30, versionName "1.24.0".
+
+### 27. Remove login gate + fix startup crash (v1.24.1)
+- **Launch crash root cause**: `PrivacyCrypto.initKeyStore()` ran in
+  `Application.onCreate()` and built its Keystore key with
+  `.setIsStrongBoxBacked(true)` and `.setUserAuthenticationRequired(true)`.
+  StrongBox-unavailable devices, and devices without an enrolled lock screen,
+  throw during key generation → the process crashed before any UI, so the app
+  "would not open at all". (Introduced in v1.22.0.)
+- **Fix**: both flags removed. `initKeyStore()` is wrapped in `runCatching`,
+  `encrypt`/`decrypt` lazily retry via `requireKey()`, and existing callers
+  already guard with `runCatching`. Data remains encrypted at rest.
+- **Authentication removed**: deleted `BiometricGateScreen.kt`,
+  `AuthViewModel.kt`, `AuthManager.kt`, `BiometricAuthenticator.kt`;
+  `MainActivity` no longer imports BiometricPrompt/BiometricManager and renders
+  `LogoBackground { … }` directly (no `if (!isAuthenticated)` branch).
+  Removed `provideBiometricAuthenticator` from `AppModule`, the
+  `USE_BIOMETRIC` manifest permission, and the ProGuard keep for
+  `BiometricAuthenticator`. Guide text updated ("opens straight to the
+  dashboard").
+- **No tests changed** (auth had no unit tests); full suite still green.
+- **Version**: versionCode 31, versionName "1.24.1".
+
+### 28. Safe Browse reliability, content-filter enforcement, settings password (v1.25.0)
+- **Safe Browse DNS proxy** (`core/safebrowse/SafeBrowseVpnService.kt`): each
+  query gets its own `protect()`ed `DatagramSocket`, replies are matched by DNS
+  transaction id, three resolvers are tried, and a query is **always answered**
+  (NXDOMAIN blocked / SERVFAIL on upstream failure) so a slow resolver can never
+  stall the device's DNS. A 4-thread pool handles packets; `setUnderlyingNetworks(null)`
+  follows the default network. Only IPv4/UDP:53 is proxied (documented).
+- **Content filter** (`core/content/ContentFilter.kt`): custom-blocklist domains
+  always block when filtering is on. `PreferenceManager` defaults `contentAction`
+  to `BLOCK` and `blockedCategories` to **all** categories.
+- **Accessibility guard** (`core/security/UrlGuardAccessibilityService.kt`):
+  `HOST_REGEX` matches bare domains (browsers show `pornhub.com`, not a full
+  URL), so categories are enforced even without Safe Browse.
+- **Config lock / settings password** (`core/security/ConfigLockManager.kt`,
+  `PasswordHasher.kt`): PBKDF2-HMAC-SHA256 (120k iters, 16-byte salt),
+  constant-time verify, 5-minute in-memory unlock, 5-attempt lockout (60 s).
+  Room `config_lock` (single row) via `ConfigLockDao`/`ConfigLockEntity`; **DB v5**
+  (`MIGRATION_4_5`, non-destructive). No recovery — clearing app data is the only
+  reset.
+- **Settings staging** (`PreferenceManager.EditableSettings` +
+  `editableSettings`/`applySettings`, `SettingsViewModel`): edits update an
+  in-memory draft; `isDirty` gates the Save button; Save verifies (or first
+  creates) the password and writes all settings in one DataStore transaction.
+  Safe Browse **disable** prompts for the password (strict gate in
+  `SettingsScreen`); app Uninstall / file Delete need only their
+  confirmation dialogs (password gate removed in v1.36.0).
+- **Settings UI**: `SettingsSectionCard` blue tint + blue `BlueButton`/
+  `StepButton`, blue section titles, bottom Save/Discard bar.
+- **Tests**: `PasswordHasherTest` (6), `ConfigLockManagerTest` (5).
+- **Version**: versionCode 32, versionName "1.25.0".
+
+### 29. Fix accessibility-guard UI freeze (v1.25.1)
+- **Bug**: v1.25.0 made `UrlGuardAccessibilityService` match bare domains, so
+  every content/text-change event (dozens/sec) triggered a full
+  `AccessibilityNodeInfo` traversal + `runBlocking` DataStore evaluation per
+  host on the UI process with an unbounded `Executors.newSingleThreadExecutor`
+  queue → CPU saturation, app unresponsive.
+- **Fix**: throttle to `MIN_SCAN_INTERVAL_MS = 800`, coalesce with an
+  `AtomicBoolean` (drop events while a scan is queued), skip our own package,
+  cap `MAX_HOSTS_PER_SCAN = 12`, cache per-host verdicts for
+  `HOST_CACHE_TTL_MS = 60s`, wrap `inspect` in try/catch, and move
+  `rootInActiveWindow` after the throttle check (one binder call per scan).
+- **`ContentFilter`** caches the user policy for 5 s (`POLICY_TTL_MS`) so hot
+  callers no longer read DataStore per domain.
+- **Settings** uses `EditableSettings()` as a fallback so it never shows an
+  indefinite spinner.
+- **Version**: versionCode 33, versionName "1.25.1".
+
+### 30. Startup robustness + crash log (v1.25.2)
+- **DataStore fail-safe** (`PreferenceManager`): `preferencesDataStore` uses
+  `ReplaceFileCorruptionHandler { emptyPreferences() }`; `themeMode` and the
+  `editableSettings` snapshot use `.catch { emit(emptyPreferences()) }` and a
+  private `Preferences.safe(key, default)` (per-key `runCatching`) so a missing
+  or wrong-typed value can never throw during startup. This matters because
+  `SettingsViewModel` (created at launch for the theme) reads the whole
+  preference store eagerly.
+- **Crash logger** (`MalwareShieldApp.installCrashLogger`): a
+  `Thread.setDefaultUncaughtExceptionHandler` writes the stack trace to
+  `getExternalFilesDir(null)/last-crash.txt` and `Log.e("ZapScanware", …)`, then
+  delegates to the platform handler. Read it via a file manager or
+  `adb pull /sdcard/Android/data/com.zapscanware.debug/files/last-crash.txt`.
+- **Defensive startup**: `Application.onCreate` work is in `runCatching`.
+- **Network security config**: placeholder certificate pins removed (they broke
+  all VT/Bazaar TLS); base config + debug override retained.
+- **Version**: versionCode 34, versionName "1.25.2".
+
+### 31. Fix launch crash: SettingsViewModel init order (v1.25.3)
+- **Symptom**: app installed but never opened (crashed instantly).
+- **Captured crash** (emulator + the v1.25.2 crash logger):
+  `NullPointerException: Attempt to invoke interface method
+  'void kotlinx.coroutines.flow.MutableStateFlow.setValue(Object)' on a null
+  object reference` at `SettingsViewModel$refreshLockState$1.invokeSuspend`
+  (`SettingsViewModel.kt:114`).
+- **Cause**: the `init {}` block called `refreshLockState()` while
+  `_hasPassword`/`_unlocked` were still uninitialized (declared later in the
+  class). `viewModelScope` = `Dispatchers.Main.immediate`, so the launched body
+  ran synchronously during construction and read the null field as the
+  assignment receiver, then NPE'd on `setValue`. `MainActivity` creates
+  `SettingsViewModel` at launch for the theme → process died before any UI.
+- **Fix**: moved the `init {}` block to the **end** of the class body so every
+  property initializer runs first. (Rule: never call a method that writes a
+  StateFlow from `init` before that field is declared.)
+- **Rule/best practice**: `viewModelScope.launch` on `Main.immediate` executes
+  synchronously up to the first suspension — do not rely on it to defer work
+  past property initialization.
+- **Verified**: installed and launched on an x86_64 API 34 emulator; dashboard
+  renders ("You're protected", Quick actions) and stays resumed; no crash file.
+- **Version**: versionCode 35, versionName "1.25.3".
+
+### 32. File-scan scope + scanned-item categorisation (v1.26.0)
+- **Why the file count was low**: `ApkFinder` only walked `SEARCH_DIRS`
+  (downloads/documents/DCIM/Movies/Music/WhatsApp/Bluetooth) and only kept
+  `SCAN_EXTENSIONS` (apk/zip/exe/doc/…); media and other files were excluded.
+  Without "All files access" it fell back to MediaStore (app-visible files
+  only). QUICK counted only APKs as "files" (`filesScanned = apks.size`).
+- **`ScannedFileCategory`** (in `ApkFinder.kt`): ANDROID_PACKAGE / ARCHIVE /
+  EXECUTABLE / SCRIPT / DOCUMENT / MEDIA / OTHER, classified by extension via
+  `FileType.fromExtension`; `MEDIA_EXTENSIONS` covers image/video/audio.
+- **`ApkFinder.findScanTargets(allFileTypes, fullStorage)`**: `fullStorage`
+  walks the whole shared storage (skips `Android/` and hidden dirs, depth ≤ 8,
+  cap `MAX_FILES_ALL = 2000`); `allFileTypes` includes media/other. Targeted
+  default unchanged (cap 500, depth 4).
+- **`FullScanResult`** now carries the per-category counts + `scannedAllFileTypes`
+  (apps system/user; files apk/archive/executable/script/document/media/other),
+  computed in `FullDeviceScanner.fullResult(...)` from `targets.files` and
+  `appResult.apps`.
+- **Setting**: `PreferenceManager.scanAllFiles` (default off) → Settings →
+  Scanning → "Scan all files (whole storage)"; DEEP scan passes it to the sweep.
+- **UI**: `DeviceScanScreen` result card shows the breakdown.
+- **Tests**: `ScannedFileCategoryTest` (7). Verified on an emulator: DEEP scan
+  reported "224 apps (223 system · 1 user) · 3 files (1 APK · 1 archive · 1
+  executable)".
+- **Version**: versionCode 36, versionName "1.26.0".
+
+### 33. Safe Browse outage, filter enforcement, save-gating (v1.27.0)
+- **Safe Browse total-outage root cause**: `u16`/`putU16` in
+  `SafeBrowseVpnService` and `DnsPacket` used **little-endian**; the wire is
+  **big-endian**. Port 53 (`00 35`) misread as 13568 → `dstPort != 53`
+  dropped every DNS packet, never answered → no site reachable. The old
+  `DnsPacketTest` passed by accident (QDCOUNT=1 misread as 256, still ≥ 1).
+- **Fix**: new pure `core/safebrowse/VpnPacket.kt` (`u16be`/`putU16be`,
+  `parseDnsQuery`, `buildUdpPacket`, `checksum`); the service delegates to it.
+  Removed `.setBlocking(false)` on the TUN fd (blocking reads on the
+  dedicated thread; non-blocking would spin). `VpnPacketTest` (7) uses real
+  wire-format packets, incl. the port-53 regression.
+- **Content filter / blocklist "not working"**: filter logic was correct;
+  failures were (1) draft-vs-saved confusion (toggles stage a draft, only
+  Save enforces), (2) no enforcement path on (Safe Browse broken + system
+  accessibility guard off), (3) no status shown. Settings now shows a live
+  enforcement line (Safe Browse state + `ENABLED_ACCESSIBILITY_SERVICES`
+  check for `UrlGuardAccessibilityService`) and the hero text states Save is
+  required. Adult list widened modestly.
+- **Save-gating**: `EditableSettings.protectionRelevantDiffers(other)` (pure,
+  in `PreferenceManager.kt`, tested by `EditableSettingsTest` (5)) covers
+  Threat intel / Scanning / Content filter / Custom blocklist. `requestSave()`
+  forces the verify dialog when those are dirty, bypassing the 5-min unlock
+  window; cosmetic changes keep it. Safe Browse enable + MalwareBazaar Save
+  key are `runProtected`-gated. Protected sections show a lock hint.
+- **Layout**: Storage & performance item moved directly below Appearance.
+- **Version**: versionCode 37, versionName "1.27.0".
+
+### 34. Per-category Notify/Block, Notify prompt, VirusTotal panel (v1.28.0)
+- **Per-category actions**: `EditableSettings.contentAction` (global) +
+  `blockedCategories` (set) replaced by `categoryActions: Map<String,String>`
+  (name → OFF/NOTIFY/BLOCK, default all BLOCK). Persisted as
+  `category_actions` (`NAME=ACTION,…`); migrates once from the legacy keys via
+  pure `migrateCategoryActions` (blocked set keeps old global action, rest
+  OFF). Pure `parse/serializeCategoryActions` + `resolveVerdict` in
+  `PreferenceManager.kt` / `ContentFilter.kt`: BLOCK wins over NOTIFY, CUSTOM
+  + MALWARE (user blocklist + threat intel) always BLOCK, missing entries
+  default BLOCK. `CategoryMatch` gains `notify` + effective `action`.
+- **Notify prompt**: new non-exported `WarnActivity` (warning icon, matched
+  reasons, OK = dismiss + stay, Cancel = `ACTION_GO_BACK` to
+  `UrlGuardAccessibilityService.onStartCommand` → `GLOBAL_ACTION_BACK`).
+  Guard snoozes re-prompts per host (`WARN_SNOOZE_MS` = 30 min); notification
+  still posted under the existing throttle.
+- **DNS path**: `classify()` only NXDOMAINs BLOCK verdicts; NOTIFY domains
+  resolve normally + throttled (60 s) notification on a new
+  `safe_browse_warn` channel (`WARN_NOTIFICATION_ID` 9002). Previously NOTIFY
+  hard-blocked over DNS (verdict ignored the action).
+- **VirusTotal key fix**: the key was build-time-only (`BuildConfig`), so keyless
+  builds silently skipped VT with no UI recourse. New `PreferenceManager`
+  `virusTotalApiKey` (Keystore-encrypted, like the MB key) + `setVirusTotalApiKey`;
+  `ReputationService.virusTotalApiKey()` (user key → BuildConfig fallback) feeds
+  `check()`, `virusTotalReport()`, `fetchVirusTotalReport()`, and
+  `VirusTotalRepository.upload()`; `virusTotalEnabled()` is now suspend.
+  Settings → VirusTotal panel: masked field with show/hide, password-gated Save
+  (`runProtected`), source status (App setting/Built-in/Not set), ••••last4
+  display, quota/queue lines moved here from Threat intelligence.
+- **Settings UI**: content-filter section renders one Off/Notify/Block row per
+  `ContentCategory` (`CategoryActionRow`); `setContentAction`/
+  `setCategoryBlocked` replaced by `setCategoryAction`.
+- **Scan progress ring**: device-scan running state uses a segmented
+  `ScanProgressRing` (24 rounded arcs, centered %) with pure `segmentsFilled`.
+- **Tests**: `CategoryActionPolicyTest` (12), updated `EditableSettingsTest`;
+  `ScanProgressRingTest` (5).
+- **Version**: versionCode 38, versionName "1.28.0".
+
+### 35. Notify-prompt reliability, Safe Browse default-ON + strict gate (v1.28.1)
+- **Prompt root cause**: Android 10+ blocks background activity starts, so the
+  guard's direct `startActivity` (Warn + Block) was silently dropped. New
+  `launchPrompt()`: keeps the direct launch as a fast path AND posts a
+  tap-to-open notification (`url_guard` channel, IDs 9003/9004, immutable
+  `PendingIntent`s) — tap always opens the prompt.
+- **Strict gate**: `runProtected` runs free with no password / inside the
+  unlock window. Safe Browse toggle now uses `runProtectedStrict` (always
+  verify; `pendingCreateAction` + new `createPassword()` forces creation when
+  none exists). Both directions covered.
+- **Default-ON**: persisted `safe_browse_enabled` (default true);
+  `safeBrowseDesired` flow + `isSafeBrowseDesired()`; auto-start in
+  `MainActivity` launch and Settings when `prepareIntent() == null`; "Waiting
+  for VPN permission" + grant button until consent; declining consent flips
+  desired off.
+- **Version**: versionCode 39, versionName "1.28.1".
+
+### 36. Safe Browse persistence: foreground + boot restart (v1.29.0)
+- **Foreground**: `onStartCommand` calls `promoteToForeground()` — ongoing
+  `safe_browse_status` channel notification ("Safe Browse active", tap opens
+  the app, blocked-count refresh throttled 10 s); `stopForeground(REMOVE)` in
+  `onDestroy`. Manifest: `FOREGROUND_SERVICE` +
+  `FOREGROUND_SERVICE_SPECIAL_USE` permissions, `foregroundServiceType=
+  "specialUse"` + the API-34 `PROPERTY_SPECIAL_USE_FGS_SUBTYPE` property;
+  API 29+ uses the 3-arg `startForeground`, older use the 2-arg call.
+- **Boot**: new `core/safebrowse/BootReceiver.kt` (`RECEIVE_BOOT_COMPLETED`,
+  non-exported, BOOT_COMPLETED + QUICKBOOT_POWERON) — `goAsync` + IO read of
+  `safeBrowseEnabled` (default true); starts via `startForegroundService`
+  (O+) only when desired, not running, and `prepare() == null` (consent
+  survives reboot; never-granted/ revoked consent starts nothing).
+- **Version**: versionCode 40, versionName "1.29.0".
+
+### 37. Notify→Warn rename, dashboard blocked-domains card (v1.30.0)
+- **Rename**: `CategoryAction.WARN = "WARN"` replaces NOTIFY as the warn
+  verdict; `NOTIFY` kept as a legacy alias accepted in `parse/migrate/
+  resolveVerdict` (all map to WARN — existing installs lose nothing).
+  Guard branch accepts WARN (+legacy NOTIFY belt-and-braces); Settings chips
+  read Off/Warn/Block; `resolveVerdict`/evaluate/comments updated.
+- **BlockedDomainLog** (`core/safebrowse/`, pure + `BlockedDomainLogTest`
+  (5)): `record(domain, action, reason)` (newest-first, 100-cap, consecutive
+  duplicates collapse), `snapshot()`, `blockedCount()`, `warnedCount()`,
+  `clear()`. Recorded on fresh DNS evaluations (BLOCK + WARN) and at guard
+  prompt launches (both paths).
+- **Dashboard**: new "Safe Browse" section + `BlockedDomainsCard` (status,
+  session summary, latest 8 entries with BLOCK(red)/WARN(amber) badges,
+  reason + time, "+N more"); refreshes on ON_RESUME. In-memory session scope
+  (resets on process death) — stated in the empty state.
+- **Version**: versionCode 41, versionName "1.30.0".
+
+### 38. Finding-button fit, VPN swipe-away survival, incremental file cache (v1.31.0)
+- **Finding buttons**: `DeviceScanScreen.FindingCard` actions use single-line
+  12sp ellipsis labels + tight padding, so Uninstall/Delete, Allow and
+  VirusTotal fit on narrow phones; "Recheck known hashes" is single-line too.
+- **VPN app-close survival**: `SafeBrowseVpnService.start()` helper (O+
+  `startForegroundService`, older `startService`) used by MainActivity,
+  Settings and `BootReceiver`; new `onTaskRemoved` re-issues a start when
+  protection is still desired and consent holds (covers OEM swipe-away
+  kills); receiver also handles `MY_PACKAGE_REPLACED` (manifest added) so
+  updates restart protection like reboots do.
+- **File scan cache** (DB v6, `MIGRATION_5_6`, non-destructive): new
+  `FileScanCacheEntity` (`file_scan_cache`, path PK) + `FileScanCacheDao`
+  (`getByPath`/`upsert`/`pruneOlderThan(30d)`/`count`), provided by
+  `AppModule`. Deep-scan file loop hashes every file, then reuses the cached
+  verdict via pure `shouldReuseFileCache` (hash match + current
+  `ANALYSIS_VERSION`; size/mtime stored but not gated) — skipping analysis,
+  reputation and quota; every fresh file upserts its verdict. Covered by
+  `FileScanCachePolicyTest` (5).
+- **Version**: versionCode 42, versionName "1.31.0".
+
+### 39. Fast repeat scans, no system apps, APK-screen simplification (v1.32.0)
+- **Why scans were slow**: every storage file was re-hashed each scan and
+  200+ system apps were hashed + analyzed each time. Fixed with a stat
+  fast-path + system exclusion (below).
+- **Never re-scan unchanged items**: deep-scan file loop pre-loads the whole
+  `file_scan_cache` in one query (`FileScanCacheDao.getAll`), then per file:
+  unchanged size+mtime → pure `shouldReuseFileCacheByStat` reuses with zero
+  I/O; stat changed → hash, and a matching hash still reuses via
+  `shouldReuseFileCache`; only new/changed content runs analysis +
+  reputation + quota. Fresh verdicts persist via one batched `upsertAll`;
+  per-scan reuse counts go to logcat (`FullDeviceScanner`). Accepted
+  trade-off (documented in code): a size+mtime-preserving modification is
+  missed until the next `ANALYSIS_VERSION` bump.
+- **System excluded**: Quick + Deep partition out `isSystem` apps before
+  scoring/hashing; each gets a terminal NOT_ANALYZED audit
+  (`excludedSystemAudits`) with a visible reason. Counts, sessions and the
+  result card ("0 system · N user-installed (system apps excluded)") use
+  user apps only. Storage sweep already never touched system partitions.
+  `ScanMode` descriptions + KDoc, DeviceScan hero and Guide updated.
+- **APK screen**: "Select APK file" picker removed; hero button is now "Scan
+  and Search APK Files" (`finderViewModel.search()`); duplicate lower search
+  button removed. Deleted now-unused `MalwareScannerViewModel` + MainActivity
+  file-picker plumbing (`filePicker`, `handlePickedApk`, dead imports);
+  `ScanScreen(finderViewModel)` only. Guide §2 updated.
+- **Tests**: 5 new stat-gate cases in `FileScanCachePolicyTest` (10 total).
+- **Version**: versionCode 43, versionName "1.32.0".
+
+### 40. Smaller scan ring + looping sweep animation (v1.33.0)
+- **`DeviceScanScreen.ScanProgressRing`**: default size 176dp → 120dp (new
+  `size: Dp` param), 14dp → 10dp stroke, headlineMedium → headlineSmall %
+  label. A translucent primary sweep arc (70°, rounded cap) rotates via
+  `rememberInfiniteTransition` (360° / 1.6s linear, Restart) over the static
+  segments, so motion continues even when progress stalls. Lit segments
+  still report the true percentage; `segmentsFilled` untouched
+  (`ScanProgressRingTest` still green).
+- **Version**: versionCode 44, versionName "1.33.0".
+
+### 41. Content-filter warnings that actually appear (v1.34.0)
+- **Assessment**: the Warn feature existed (classifier → verdict → guard →
+  `WarnActivity`) but "no warning" was the common outcome: (1) BAL blocked
+  the background activity start so the prompt sat unseen in the shade;
+  (2) a global 30s throttle + same-host dedup above the prompt branches
+  killed prompts for any second risky site within 30s; (3) bundled
+  adult/gambling lists missed popular sites (stake, unibet, livejasmin).
+- **Full-screen prompt**: `launchPrompt` notifications now
+  `setFullScreenIntent(tap, true)` + `CATEGORY_ALARM` on the HIGH
+  `url_guard` channel, so Warn/Block pops over the browser immediately;
+  new `USE_FULL_SCREEN_INTENT` manifest permission (API 34 install-time).
+- **Throttle scoping**: 30s/lastUrl gates now wrap only the generic
+  notification; BLOCK prompts get a per-host `PROMPT_COOLDOWN_MS` (60s,
+  new `promptedAt` map), WARN keeps its 30-min `warnedAt` snooze.
+- **Wider detection**: +8 adult / +10 gambling exact domains, +5 gambling
+  keywords; 3 new `CategoryClassifierTest` cases incl. FP guards.
+- **Version**: versionCode 45, versionName "1.34.0".
+
+### 42. Device-scan screen structure fix (v1.34.1)
+- **Fatal brace**: a stray `}` closed the results `LazyColumn` early, so all
+  following `item`/`items` calls were outside list scope (would not
+  compile). Removed; restored the single root-`LazyColumn` rule (§24b).
+- **Gradient cards**: scan-mode + running-state sections moved onto the hero
+  gradient with white/light text and white unselected chip labels, since
+  the default dark `onSurface` text is unreadable on the dark gradient.
+- **Version**: versionCode 46, versionName "1.34.1".
+
+### 43. Safe Browse app-close survival guidance (v1.35.0)
+- **Diagnosis**: our code never stops the VPN on close (only the Settings
+  toggle calls `stopService`; `stopSelf` is revoke-only). Stops come from
+  the system/OEM (swipe force-stop, battery saver, memory pressure), and
+  on API 31+ a background `startForegroundService` retry may throw
+  `ForegroundServiceStartNotAllowedException` (already caught). No app can
+  force-survive that — only the user via system settings.
+- **Fix in-app**: Safe Browse section (while desired) adds an explainer +
+  two deep links: `ACTION_VPN_SETTINGS` (enable Always-on VPN → Android
+  keeps it up until switched off here) and
+  `ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS` (Unrestricted), each with
+  a generic-Settings fallback for makers missing those pages.
+- **Version**: versionCode 47, versionName "1.35.0".
+
+### 44. Honest dashboard count, password-free delete (v1.36.0)
+- **33 vs 1381**: dashboard "Total scans" counted `scan_history` rows (one
+  per finding); the real coverage lives in `scan_session.totalScanned`
+  (apps + files). New `DashboardViewModel.lastScanItems` (latest COMPLETED
+  session via `ScanSessionDao.getAll()`, Hilt-injected) feeds the tile,
+  relabeled "Items scanned". Threats/Clean tiles still count finding rows.
+- **Delete without password**: finding Delete/Uninstall confirm dialogs in
+  `DeviceScanScreen` + `AppDetailScreen` no longer take a password (dialog
+  itself is the confirmation); settings protection untouched. Deleted the
+  now-dead `lockRequired`/`verifyLock`/`refreshLockRequired` and the
+  `ConfigLockManager` param from `DeviceScanViewModel`.
+- **Version**: versionCode 48, versionName "1.36.0".
+
+### 45. Scheduled scans that actually run (v1.37.0)
+- **Diagnosis**: save path, worker construction and manifest were all
+  sound; the failure modes were (1) periodic work fired ASAP after
+  enabling so the "Next run" countdown was fiction, (2) `update()` could
+  leave the toggle ON with failed/missing work and zero log trace,
+  (3) no startup recovery, (4) the worker ran quick permission scoring
+  only and recorded nothing (no session/history/notification), and
+  (5) "Restricted" battery bucket silently blocks ALL background work.
+- **One-off chain**: `ScanScheduler` enqueues a single one-off link per
+  run (`UNIQUE_CHAIN`), each completion chaining the next via
+  `recordRun`; honest `computeNextRunAt` (pure, `ScanScheduleTimingTest`
+  (8)); stale `UNIQUE_PERIODIC`/`UNIQUE_ONE_OFF` work cancelled on
+  re-enqueue; `update()` logs `outcome=`; `resyncOnStartup()` (called from
+  `MalwareShieldApp`) re-enqueues only when desired-but-missing;
+  `runNow()` enqueues non-unique immediate work flagged `INPUT_MANUAL`.
+- **Full-scan worker**: `ScheduledScanWorker` pulls graph deps via a Hilt
+  entry point (no custom WorkerFactory — other plain workers untouched);
+  runs the user's scan mode, persists the session, records findings,
+  notifies high-risk (max 3, gated), logs trigger/finish; skips chaining
+  for manual runs and stale links after disable.
+- **Screen**: "Run now" button in the hero; red restricted-mode card via
+  `ActivityManager.isBackgroundRestricted()` (API 28+) with an app-details
+  deep link.
+- **Version**: versionCode 49, versionName "1.37.0".
+
+### 46. Clean-vs-Total, red ring, WARN prompt from VPN (v1.38.0)
+- **Clean mismatch**: clean APKs were emitted as findings (Quick logged every
+  APK; Deep `|| f.isApk` + cache-reuse twin) AND tiles counted all-time
+  history rows vs the latest-session Total. Fixed: only
+  malicious-or-≥MEDIUM become findings (fresh + cached paths); dashboard
+  Threats/Clean derive from the latest COMPLETED session
+  (`lastScanThreats`/`lastScanClean`, Clean = Total − Threats ≥ 0) so the
+  tiles always sum to the Total. Hero "threats blocked" stays all-time.
+- **Ring**: `ScanProgressRing` filled/sweep color primary → `#E53935` red.
+- **WARN prompt**: `SafeBrowseVpnService.notifyWarn` upgraded from a quiet
+  DEFAULT notification (no tap, global 60s gate) to direct-launch fast path
+  + full-screen tap-to-open notification on HIGH `url_guard` (CATEGORY_ALARM)
+  opening `WarnActivity`, per-host 60s cooldown (ID 9006 / code 906).
+  Old `safe_browse_warn` channel abandoned (left uncreated).
+- **Version**: versionCode 50, versionName "1.38.0".
+
+### 47. Overlay Warn/Block prompt over the browser (v1.39.0)
+- **Why**: full-screen notifications only pop when channel/permission state
+  cooperates; users saw shade entries needing a tap. New
+  `core/content/PromptOverlay.kt` (classic Views, main-thread
+  WindowManager, single current prompt) draws the Warn/Block card via
+  `TYPE_APPLICATION_OVERLAY` immediately over any app; modal + focusable so
+  the page can't be used underneath. Cancel exits the page (guard back-nav
+  callback; VPN passes null), Continue/Go-back dismisses.
+- **Wiring**: guard `launchPrompt` + VPN `notifyWarn` try overlay first
+  (`Settings.canDrawOverlays`), else legacy direct-start + full-screen
+  notification with UNIQUE ids per prompt (fixed ids never re-fired).
+  Manifest gains `SYSTEM_ALERT_WINDOW`; Settings content-filter section has
+  a "Display over other apps" Grant/Manage row (deep link
+  `ACTION_MANAGE_OVERLAY_PERMISSION`, ON_RESUME refresh) + updated copy.
+- **Version**: versionCode 51, versionName "1.39.0".
+
+### 48. Prompt diagnostics (v1.40.0)
+- **Why**: "no prompt over Chrome" has 5+ possible causes (VPN off, Private
+  DNS/Chrome Secure DNS bypass, filter off, category OFF, overlay denied,
+  overlay attach failure) — all invisible. New `core/content/
+  PromptDiagnostics.kt` (last prompt kind/domain/at, overlay attach error,
+  Private-DNS mode read via literal key for minSdk 26) + VPN DNS counters
+  (`dnsQueryCount/lastDnsDomain/lastDnsAt` in `handlePacket`); overlay
+  records prompts + failures.
+- **UI**: Settings "Prompt diagnostics" card with 6 red/green checklist
+  lines, Test-prompt button (overlay or grant deep-link), Refresh, and a
+  Chrome Secure-DNS note.
+- **Version**: versionCode 52, versionName "1.40.0".
+
+### 49. Overlay grant UX + fallback (v1.41.0)
+- Red `OverlayGrantBanner` on the dashboard until `canDrawOverlays` (own
+  ON_RESUME observer); Settings fires a test overlay the moment the grant
+  flips false→true. `PromptOverlay.show*` take `onFailed`, invoked on any
+  attach failure — both services fall back to their notification path
+  (guard refactored to `postPromptNotification`, VPN to
+  `postWarnNotification`) instead of going silent.
+- **Version**: versionCode 53, versionName "1.41.0".
+
+### 50. Overlay-free pop-up hardening (v1.42.0)
+- Prompt fallbacks post to a fresh HIGH `url_guard_alert` channel (created
+  in `MalwareShieldApp`; guard `ALERT_CHANNEL_ID`, VPN `WARN_CHANNEL_ID`
+  repointed) — immune to user/OEM-deprioritized `url_guard`.
+  `PromptDiagnostics.fullScreenPopupsAllowed()` (API 34+
+  `canUseFullScreenIntent`, null below) feeds diagnostics line 6 (last
+  prompt moved to 7).
+- **Version**: versionCode 54, versionName "1.42.0".
+
+### 51. Warn Blocks, heads-up, settings tidy (v1.43.0)
+- `PreferenceManager.blockDomain()` (suspend append, deduped); guard
+  overlay WARN `onBlock` = block + back, new `WarnActivity.
+  ACTION_BLOCK_DOMAIN` (guard handles on worker; WarnActivity ALSO blocks
+  directly on a thread so VPN-only setups work); VPN overlay `onBlock` =
+  block; Warn screen buttons Block/Continue; overlay subtitle per kind.
+- Prompt fallbacks add `DEFAULT_ALL` (heads-up peek where full-screen is
+  suppressed). Settings: overlay Grant/Test moved to new "Prompts over
+  browser" section below Safe Browse; Prompt-diagnostics card + `DiagLine`
+  + diag state removed (object kept for error recording).
+- **Version**: versionCode 55, versionName "1.43.0".
+
+### 52. Dashboard banner removal (v1.44.0)
+- `OverlayGrantBanner` deleted from `DashboardScreen` (redundant with
+  Settings → Prompts over browser).
+- **Version**: versionCode 56, versionName "1.44.0".
+
+### 53. Inline prompt decisions + pause-first (v1.45.0)
+- `WarnPassStore` (30-min passes, session in-memory, Block wins) +
+  `PromptActionReceiver` (non-exported, explicit intents, CONTINUE_ONCE /
+  BLOCK_ALWAYS) declared in manifest without intent-filter. Both prompt
+  notifications gain Continue-once/Block-always actions (WARN only; unique
+  broadcast requestCodes per prompt).
+- VPN `classify`: pass → silent allow; else prompt + log + pause-first
+  NXDOMAIN; `CachedVerdict(pausable)` so a fresh pass re-evaluates instead
+  of serving the stale 60s block. Guard: pass skips generic + prompt paths
+  (BLOCK unaffected). `warnPauseFirst` pref (default true) in Policy,
+  EditableSettings, snapshot/apply, diff, ViewModel setter, Settings toggle.
+- **Version**: versionCode 57, versionName "1.45.0".
+
+### 54. Activity logging, password integrity, dashboard client (v1.46.0)
+Implements Phase 1 and Phase 2 of `ENHANCEMENT_PLAN_12.md`.
+
+- **Tamper-evident log** (`core/logging/`): `EventChain` (pure canonical form +
+  SHA-256 `prev` link + Keystore-MAC `mac`), `EventLogger` (bounded channel,
+  batched writer, encrypted chain head, `verifyChain`, `readSince`,
+  user-initiated `clearAll` that writes a `LOG_CLEARED` record), `EventRateLimiter`,
+  `LogRedactor` identifier-key exemption, `SecurityEvent` schema 2 (`seq`/`prev`/
+  `mac`), and `KeystoreMac` (`ms_log_mac`/`ms_pw_pepper`/`ms_policy_mac`).
+- **Logging call sites**: download scans, device scans (`SCAN_START/FINISH/CANCEL`,
+  user actions), cloud drain, feed refresh, VPN + accessibility protection state
+  and block/warn (per-domain rate limit) + DNS stats, prompt decisions, app start,
+  permission changes, settings changes, password events, VirusTotal upload,
+  gated log/history clears.
+- **Settings password** (`ConfigLockManager`): persisted lockout (`LockoutPolicy`),
+  600k-iteration PBKDF2 + Keystore pepper (`deriveV2`), `PasswordPolicy`
+  (8–128 + common list), fail-closed marker (`files/security/pw_marker`),
+  `changePassword`, `hardLocked`. Room **DB v7** (`MIGRATION_6_7`).
+- **Policy seal** (`PolicySeal` + `PolicySnapshot` + `PreferenceManager`):
+  HMAC over the stored protected strings; a mismatch loads strict defaults and
+  sets `policyTampered`.
+- **Dashboard client** (`core/telemetry/`): `TelemetryStore`, `TelemetryClient`
+  (OkHttp, `X-Content-SHA256`), `TelemetrySync` (event upload + heartbeat +
+  command/policy handling), `TelemetryWorker`. Settings → Activity reporting.
+- **Server**: `server/` (dependency-free Node.js reference; `DASHBOARD_API.md`,
+  `PRIVACY.md`).
+- **Fixes**: WARN Continue grants the pass on both paths;
+  `allFilesNewestFirst` ordering; removed dead `BackgroundScanWorker`.
+- **Version**: versionCode 58, versionName "1.46.0".
+- **v1.46.1 fix**: `DownloadMonitor` now shares the singleton `EventLogger` and
+  records a one-time `download_scan` skip (`reason=no_storage_access`) when the
+  app lacks "All files access", instead of failing silently. versionCode 59.
+- **v1.46.2 fix**: `SafeBrowseVpnService.onStartCommand` on `establish()`
+  failure (`START_NOT_STICKY` path) now demotes the zombie foreground status —
+  `protection_state` (`stopped`, `reason=establish_failed`, ERROR) is logged and
+  `stopSelf()` removes the stale "Safe Browse active" notification instead of
+  leaving it while nothing is intercepted. versionCode 60.
+- **v1.46.3 fixes** (website control): the tunnel is dual-stack — IPv6 address
+  + DNS server + /128 route (`fdfe:dcba:9876::1/2`), `VpnPacket` parses v4/v6
+  UDP and TCP frames (extension-header walk, pseudo-header checksums) and
+  builds replies for both; the new packet-level `TcpDnsResponder` answers
+  DNS-over-TCP with the same verdict logic as UDP instead of hanging the
+  client; `PromptCoordinator` (15 s per-domain claim, owners `vpn`/`guard`)
+  prevents the double WARN prompt. 363 unit tests (+28). versionCode 61.
+- **v1.46.4 fix** (policy seal): prompt-time "Block always" wrote the sealed
+  `custom_blocklist` via the raw setter without re-sealing, so the next settings
+  load flagged `policyTampered` and reset to strict defaults. `blockDomain`
+  and the dashboard policy path now call `PreferenceManager.resealPolicy()`
+  after every out-of-draft write. Also: `establish()` failures are logged (no
+  longer swallowed) and a debug-only `dns_v6 answered` marker proves the IPv6
+  reply path. New on-device `SafeBrowseFilterSetupTest` (VPN consent via
+  `UiAutomation`, seal + dual-stack + UDP filter assertions). versionCode 62.
+- **v1.47.0** (Allow App whitelist): the dashboard "Find APKs" tile is now
+  "Allow App" — a screen listing every user-installed app with an Allow button.
+  Allowed apps reuse `FindingAllowlist` (package-name keyed) and are skipped
+  entirely by device/scheduled scans (filtered out before scoring/hashing in
+  `FullDeviceScanner` quick+deep, so they are never audited or counted).
+  Settings → "Allowed apps" lists them with a Remove action; `FindingAllowlist`
+  gained `removePackage(...)` for both proactive and finding-time allows. New
+  `AllowAppScreen`/`AllowAppViewModel` + `InstalledAppScanner.listUserApps()`.
+  366 unit tests. versionCode 63.
+- **v1.47.1** (Allow App buttons): each app row in the Allow App screen now
+  shows two always-visible buttons — **Allow** (primary) and **Disallow**
+  (error) — instead of the single Allow / "Allowed" toggle. The active action
+  is enabled and the inactive one disabled. Disallow calls the same
+  `FindingAllowlist.removePackage(...)` as before. versionCode 64.
+- **v1.47.2** (scan speed + progress): the heavy `AppInventoryCollector.collect()`
+  (GET_ACTIVITIES/SERVICES/RECEIVERS/PROVIDERS + GET_SIGNING_CERTIFICATES +
+  per-package `getInstallSourceInfo`) no longer blocks the scan — it is deferred
+  to a background refresh (`refreshInventoryInBackground` on a SupervisorJob+
+  IO scope) after the result is returned, so the app-detail inventory still
+  populates without slowing the scan. Ordering now uses
+  `InstalledAppScan.lastUpdateTime` (new field) from the existing
+  `scanDevice` enumeration. Progress is now a single accurate percentage:
+  `FullDeviceScanner` enumerates `apps + files` up front and reports
+  `done/total` (deep: apps then files; quick: apps then APKs) instead of the
+  two-phase 0–50/50–100 guess. 366 unit tests. versionCode 65.
+- **v1.47.3** (scan performance): the deep-scan file loop is now **parallel**
+  (`coroutineScope` + `async(Dispatchers.IO.limitedParallelism(4))`) over
+  thread-safe collections (Collections.synchronizedList for findings,
+  candidates/freshFileEntries, AtomicInteger counters) - analyzers are
+  stateless singletons so parallel dispatch is safe. **MalwareBazaar is
+  deferred**: `ReputationService.check(includeMalwareBazaar=false)` keeps the
+  per-file hot path offline; a new `ReputationService.bazaarVerdict(hash)`
+  spends the per-scan budget on the highest-priority `candidates` after the
+  loops, upgrading file findings/cache rows (and creating a MALWARE finding for
+  a clean file MalwareBazaar flags) plus merging into the app assessment.
+  Also: `ScanCacheDao.getAll()` batch read, `FileTypeIdentifier.identify(head,
+  file)` to avoid re-opening files, and throttled quick/deep progress callbacks
+  (`PROGRESS_INTERVAL_MS`). 366 unit tests. versionCode 66.
+- **v1.47.4** (scan coverage + transparency): the 71-vs-40 gap was the silent
+  system-app partition in `FullDeviceScanner` (system apps never reached
+  scoring/hashing). New `PreferenceManager.scanSystemApps` (default OFF,
+  sealed + staged via `EditableSettings`/`applySettings`, logged in
+  `PolicySnapshot`, `SettingsViewModel.setScanSystemApps`, Settings toggle):
+  when ON, quick+deep (manual + scheduled) scan system apps too; the result
+  card states the scope dynamically. `ScanProgressInfo.currentItem` carries
+  the live app label/file name (throttled emits); `FullScanResult` gains
+  `scannedSystemApps` + `scannedAppLabels`/`scannedFileNames` (scan order);
+  `DeviceScanScreen` shows "Now: ..." live and a "Show scanned items"
+  expander (50-cap + "+N more"). `ScanMode`/Guide copy updated. 366 unit
+  tests. versionCode 67.
+- **v1.47.5** (scheduled-scan logging): two gaps. (1) The writer batches up to
+  5s but a finished worker's process can die first, losing that run's events
+  (UI process outlives the window, so manual scans were fine) - new
+  `EventLogger.flushNow()` (bounded drain + sync flush, never throws),
+  called in `ScheduledScanWorker` `finally`. (2) `isDndActive()` read
+  `currentInterruptionFilter` without policy access (returns UNKNOWN, never
+  ALL), deferring every scan with respect-DND on - now fail-open unless
+  `isNotificationPolicyAccessGranted`. Also added worker `SCAN_START` parity
+  (mode + trigger, shared correlation ID). Verified on-device via Run now:
+  trigger/start/finish (seq 85-87) persisted. 366 unit tests. versionCode 68.
+- **v1.47.6** (dashboard threats + VPN heat): Threats `GradientStat` takes
+  optional `onClick` ("Tap to view" hint); `DashboardViewModel`
+  `threats/loadThreats/clearThreats` reads the latest COMPLETED session's
+  rows via `ScanHistoryDao.getBySession`; `ThreatsDialog` lists name,
+  package/type, category+risk, level+signature (20-cap, History shortcut).
+  VPN heat: repeat DNS (retries, dual-stack dupes, telemetry) each cost a
+  classify + upstream socket + radio. New `DnsCache` (512 entries, TTL clamp
+  20-120 s, NOERROR+answers only, txid patched on serve, `DnsCacheTest` 5)
+  wired into `processDnsQuery`; blocks never cached. Verified on-device:
+  dialog lists the SUSPICIOUS finding; VPN Active, DNS resolves through the
+  tunnel, no crashes. 371 unit tests. versionCode 69.
+- **v1.47.7** (built-in intel keys): new `MALWAREBAZAAR_API_KEY` build field
+  (`-P` flag / env / user-global `gradle.properties`, never committed) joins
+  the existing `VIRUSTOTAL_API_KEY` default. `resolveEffectiveApiKey`
+  (pure, `ApiKeyFallbackTest` 3) = user-saved → built-in → blank; exposed via
+  `PreferenceManager.effectiveMalwareBazaarAuthKey()` /
+  `effectiveVirusTotalApiKey()` and `ReputationService.malwareBazaarAuthKey()`
+  + `malwareBazaarKeySource()`. All Bazaar call sites (service check +
+  deferred phase, `MalwareRepository` x2, `SignatureFeedWorker`, settings
+  save/sync) and the telemetry VT flag now resolve effective keys, so cloud
+  intel works with zero user setup and any pasted key still overrides.
+Settings shows key source for both providers; key supply documented in
+CONTRIBUTING. 374 unit tests. versionCode 70.
+- **v1.47.8** (scan performance + instrumented tests): deep-scan app-analysis
+  loop now runs in parallel (`limitedParallelism(4)` over thread-safe
+  collections) instead of sequentially, and Room scan-cache writes are batched
+  into a single `upsertAll()` instead of one transaction per app — faster
+  first-scan time on devices with many installed apps. `ScanCacheDao` gains
+  `upsertAll(List<ScanCacheEntity>)`. New
+  `DeviceScanInstrumentedTest` (7 instrumented tests) on the emulator covers
+  SHA-256 digest correctness, EICAR detection by the static pipeline,
+  benign-file non-detection, threat-scoring primitive detection, risk-engine
+score bounds, detection-category validity, and graceful handling of missing
+APK paths. 374 unit tests + 17 instrumented tests, all green. versionCode 71.
+- **v1.47.9** (scan continues when phone sleeps): manual and scheduled scans now
+  acquire a partial `WAKE_LOCK` for the scan duration via new `ScanWakeLock`
+  (reentrant, released in `finally`), so Doze / app standby no longer suspends
+  the scan coroutine when the screen turns off. Added `android.permission.WAKE_LOCK`
+  to the manifest and wired the wake lock into `DeviceScanViewModel.scan()` and
+  `ScheduledScanWorker.doWork()`. 374 unit tests + 17 instrumented tests, all
+  green. versionCode 72.
+- **v1.47.10** (EICAR detection tests + threat-level merge fix): two real bugs
+  found by new EICAR tests. (1) `ScanDispatcher.merge` chose the highest level
+  via `maxByOrNull { it.ordinal }`, but `ThreatLevel.UNKNOWN` has the highest
+  ordinal — and `GenericFileAnalyzer` runs on every file contributing its
+  default `UNKNOWN` — so the merged report's `threatLevel` was **always**
+  `UNKNOWN`, erasing signature-rule `HIGH`/`CRITICAL` (finding gradients,
+  `highRiskCount` and the static risk weight were all understated). The merge
+  now folds with `ThreatScoring.max`, which ranks `UNKNOWN` lowest. (2)
+  `RiskEngine.ANALYSIS_VERSION` bumped 1 → 2 so cached verdicts stored with
+  the wrong level are re-analyzed instead of reused. New EICAR coverage (the
+  harmless 68-byte industry-standard test file): `EicarDetectionInstrumentedTest`
+  (4, `ScanDispatcher` on an external-storage sample), `EicarOnDeviceScanTest`
+  (real `FullDeviceScanner.scan(DEEP)` asserting `/sdcard/Download/eicar.com`
+  surfaces as a malicious `EICAR_Test_File` finding), plus
+  `ScanWakeLockSmokeTest` (2, wake-lock lifecycle + survival of a real
+  screen-off/on cycle) and `scripts/verify-eicar-detection.ps1` for pushing
+  the sample to a device and confirming the alert manually. Hilt rule learned
+  the hard way: an `@EntryPoint` declared in `androidTest` is **not**
+  implemented by the app's `SingletonComponent` (ClassCastException) — reuse a
+  `main`-source entry point (`ScheduledScanWorker.ScanWorkerEntryPoint`).
+  374 unit tests + 24 instrumented tests, all green. versionCode 73.
+
+**Note on "no telemetry":** the app has no telemetry by default. Activity
+reporting (Settings → Activity reporting) is opt-in per device and described in
+`PRIVACY.md`; it sends redacted events (hashes/counts/categories, never file
+names, paths, or full URLs) and a heartbeat.
+
+## Module Structure
+```
+MalwareShield/
+├── app/
+│   └── src/main/java/com/malwareshield/
+│       ├── MalwareShieldApp.kt
+│       ├── data/
+│       │   ├── db/ (MalwareShieldDatabase v6)
+│       │   ├── dao/ (ScanHistoryDao, AppInventoryDao, ScanCacheDao, FileScanCacheDao,
+│       │   │         ScanSessionDao, ConfigLockDao)
+│       │   ├── entities/ (ScanHistoryEntity, AppInventoryEntity, ScanCacheEntity,
+│       │   │              FileScanCacheEntity, ScanSessionEntity, ConfigLockEntity)
+│       │   ├── repository/ (MalwareRepository, VirusTotalRepository,
+│       │   │                BackgroundScanWorker, CloudLookupWorker,
+│       │   │                ScheduledScanWorker, SignatureFeedWorker)
+│       ├── di/ (AppModule, AppComponent)
+│       ├── presentation/
+│       │   ├── MainActivity.kt
+│       │   ├── BlockActivity.kt
+│       │   ├── screens/ (ScanScreen, DeviceScanScreen, AppDetailScreen,
+│       │   │            HistoryScreen, URLValidatorScreen, DashboardScreen,
+│       │   │            SettingsScreen, ScheduleScreen, GuideScreen,
+│       │   │            ProviderKeyScreen, LogViewerScreen, ApkFinderScreen)
+│       │   ├── ui/
+│       │   │   ├── components/ (UIComponents, ModernComponents, LogoBackground)
+│       │   │   └── theme/ (Theme)
+│       │   └── viewmodel/ (History, Settings, Dashboard,
+│       │       │            Provider, Schedule, Log, UrlScan, ApkFinder, DeviceScan)
+│       └── core/
+│           ├── analysis/
+│           │   ├── FileType.kt
+│           │   ├── FileTypeIdentifier.kt
+│           │   ├── AnalysisReport.kt
+│           │   ├── FileAnalyzer.kt
+│           │   ├── FileDigest.kt (FileDigest + FileDigestReader)
+│           │   ├── ScanDispatcher.kt
+│           │   ├── analyzers/ (AndroidPackage, ArchivePackage, Aab, Dex, Jar,
+│           │   │               Pe, Script, Archive, Document, SignatureRule,
+│           │   │               Generic)
+│           │   ├── archive/ (BombGuard.kt)
+│           │   ├── pe/ (PeParser.kt)
+│           │   ├── rules/ (ThreatSignatures, YaraRule, RuleParser,
+│           │   │            RuleCondition, RuleEngine, BundledRules)
+│           │   └── util/ (BytePatternScanner, Entropy, StringExtractor, AnalysisIo)
+│           ├── content/ (ContentCategory, CategoryClassifier, ContentFilter, WarnPassStore,
+│           │              PromptOverlay, PromptActionReceiver, PromptDiagnostics, PromptCoordinator)
+│           ├── reputation/ (ReputationService, ReputationCache, RateLimiter,
+│           │                ReputationVerdict + VtSummary, CloudLookupQueue,
+│           │                CloudLookupGraph, CloudLookupNotifier,
+│           │                CloudContinuationPolicy, MalwareBazaarPacer,
+│           │                MalwareBazaarNegativeCache, ReputationReadiness)
+│           ├── downloads/ (DownloadMonitor, DownloadScanWorker, DownloadScanNotifier)
+│           ├── logging/ (EventLogger, EventChain, EventRateLimiter,
+│           │             SecurityEvent + EventJson, LogRedactor)
+│           ├── telemetry/ (TelemetryStore, TelemetryClient, TelemetrySync,
+│           │              TelemetryWorker — optional dashboard reporting)
+│           ├── notifications/ (NotificationGate, DeviceThreatNotifier)
+│           ├── providers/ (ProviderKeyManager, SignatureProvider + ProviderKeysFile)
+│           ├── safebrowse/ (SafeBrowseVpnService, VpnPacket, TcpDnsResponder, DnsPacket,
+│           │                  BlockedDomainLog, BootReceiver)
+│           ├── scheduling/ (ScanScheduler, ScheduledScanWorker)
+│           ├── perf/ (CacheManager)
+│           ├── security/
+│           │   ├── APKAnalyzer.kt
+│           │   ├── ApkFinder.kt
+│           │   ├── AppInventoryCollector.kt
+│           │   ├── AppScanAudit.kt (+ Report, Store)
+│           │   ├── ConfigLockManager.kt
+│           │   ├── PasswordHasher.kt
+│           │   ├── PasswordPolicy.kt / LockoutPolicy.kt
+│           │   ├── PolicySeal.kt / KeystoreMac.kt
+│           │   ├── DetectionCategory.kt (+ Classifier)
+│           │   ├── DeviceFinding.kt (+ ScanProgressInfo, FullScanResult)
+│           │   ├── FindingAllowlist.kt
+│           │   ├── FullDeviceScanner.kt
+│           │   ├── HashIndex.kt
+│           │   ├── InstalledAppScan.kt
+│           │   ├── InstalledAppScanner.kt
+│           │   ├── PrivacyCrypto.kt
+│           │   ├── RecheckService.kt
+│           │   ├── RiskEngine.kt
+│           │   ├── ScanMode.kt
+│           │   ├── ThreatScoring.kt
+│           │   ├── UrlGuardAccessibilityService.kt
+│           │   └── URLValidator.kt
+│           ├── network/
+│           │   ├── VirusTotalApiModels.kt
+│           │   ├── VirusTotalClient.kt (+ VirusTotalApiService)
+│           │   └── MalwareBazaarClient.kt (+ ApiService, BazaarOutcome)
+│           ├── scanning/
+│           │   ├── ScanEngine.kt
+│           │   └── ScanResult.kt
+│           ├── signatures/ (SignatureFeedManager, SignatureFeedModels
+│           │                 (+ ThreatFeedJson), SignatureVerifier,
+│           │                 MalwareBazaarFeed (+ Parser, MirrorPolicy))
+│           └── storage/ (PreferenceManager.kt, PolicySnapshot.kt)
+│       └── androidTest/java/com/malwareshield/core/
+│               (AppInstrumentedTest, ScanScreenInstrumentedTest,
+│                ScannerInstrumentedTest)
+├── logo/ (zap logo.jpg) → All mipmap/drawable as ic_launcher.webp
+├── build.gradle.kts
+├── settings.gradle.kts
+├── gradle.properties
+├── AGENTS.md
+├── README.md
+├── CHANGELOG.md
+├── CONTRIBUTING.md
+├── PRIVACY.md                (what is stored/sent; opt-in reporting)
+├── DASHBOARD_API.md          (device <-> dashboard contract)
+├── ENHANCEMENT_PLAN_12.md    (this work's plan + status)
+├── server/                   (dependency-free Node.js dashboard backend + web UI)
+└── docs/ (index.html, README.md, zap-scanware-debug.apk)
+```
+
+## Startup / Crypto Flow
+1. `MalwareShieldApp.onCreate` calls `PrivacyCrypto.initKeyStore()` (fail-safe).
+2. The Keystore AES-GCM key is created on first launch **without** user-auth or
+   StrongBox requirements, so key generation never crashes startup.
+3. `MainActivity` renders `DashboardScreen` immediately — no unlock gate.
+4. Encrypt/decrypt retry key creation lazily and surface failures to callers,
+   which already wrap them in `runCatching`.
+
+## Build Configuration
+- **minSdk**: 26
+- **targetSdk**: 34
+- **compileSdk**: 34
+- **AGP**: 8.2.0, Kotlin 1.9.20, Compose BOM 2024.01.00
+- **Biometric**: androidx.biometric:biometric:1.2.0-alpha04
+- **Room**: 2.6.1, **WorkManager**: 2.9.0
+- **Retrofit**: 2.9.0, **OkHttp**: 4.12.0
+- **Hilt**: 2.50
+
+## Logo
+- **Source**: `C:\Users\Administrator\Documents\Default Project\MalwareShield\logo\zap logo.jpg`
+- **Installed to**: All `mipmap-*` directories + `drawable/` as `ic_launcher.webp`
+- **Adaptive icons**: `mipmap-anydpi-v26/`
+
+## Build & Install
+```bash
+./gradlew assembleDebug
+./gradlew assembleRelease
+adb install app/build/outputs/apk/debug/app-debug.apk
+```
+
+## Release & Publishing (REQUIRED for every enhancement/change)
+
+Whenever new code is an enhancement or behavior change, the app MUST be
+published as part of the same task — do not leave it as an uncommitted local
+build. Publishing means:
+
+1. **Bump the version** in `app/build.gradle.kts` (`versionCode` +1,
+   `versionName` semver) for any user-visible change.
+2. **Configure signing**: Add keys to `local.properties`:
+   ```
+   KEYSTORE_PATH=/path/to/your/release-key.jks
+   KEYSTORE_PASSWORD=your_password
+   KEY_ALIAS=your_alias
+   KEY_PASSWORD=your_key_password
+   ```
+3. **Build**: `./gradlew testDebugUnitTest assembleDebug assembleRelease` — tests must pass.
+4. **Stage the APK for the download page**: copy
+   `app/build/outputs/apk/debug/zap-scanware-debug.apk` over
+   `docs/zap-scanware-debug.apk` (GitHub Pages serves this file).
+5. **Update the GitHub Pages landing page** `docs/index.html` — it hardcodes the
+   values, so refresh all three (compute with
+   `(Get-FileHash docs/zap-scanware-debug.apk -Algorithm SHA256).Hash` and the
+   file length):
+   - the `.version` line (`Version X.Y.Z (build N) · Android 8.0+`),
+   - the `.meta` line (`<size> MB · APK · Signed · vX.Y.Z (N)`),
+   - the `#sha256` checksum, and
+   - add/refresh feature bullets when capabilities change.
+   Also update `docs/README.md` if the APK size/version is mentioned.
+6. **Commit and push** to `origin main` with a descriptive message
+   (e.g. `vX.Y.Z: <summary>`). GitHub Pages re-deploys automatically.
+
+Do not publish on trivial internal-only edits (typos in comments, docs-only
+changes) unless the user asks. Never commit secrets (`local.properties`,
+keystores, API keys are git-ignored).
+
+## Best Practices
+- All network calls use Suspend functions with Coroutines
+- Database operations use Room with Flow for reactive updates
+- Privacy: All scan data stored locally, encrypted with Android Keystore
+- Background work uses WorkManager with battery/network constraints
+- SHA-256 hashing uses streaming 8KB buffers
+- UI uses Jetpack Compose for efficient rendering
+- No telemetry by default; optional opt-in activity reporting (see §54)
+- Local secrets encrypted with an Android Keystore AES-GCM key (`PrivacyCrypto`)
+- No login/unlock gate — the app opens directly to the dashboard

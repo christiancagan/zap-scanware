@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zap Scanware — Download</title>
+    <meta name="description" content="Download the Zap Scanware Android malware protection app.">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #071018 0%, #0d1b2a 50%, #071e2b 100%);
+            color: #fff;
+            padding: 24px;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 48px 40px;
+            max-width: 440px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+        }
+        .logo {
+            width: 176px;
+            height: 176px;
+            margin: 0 auto 8px;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            background: #071018;
+        }
+        .logo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        h1 { font-size: 28px; font-weight: 700; margin-bottom: 6px; }
+        .tagline { font-size: 15px; opacity: 0.9; margin-bottom: 8px; }
+        .version { font-size: 13px; opacity: 0.75; margin-bottom: 28px; }
+        .dl-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            background: #fff;
+            color: #0d47a1;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: 700;
+            padding: 16px 28px;
+            border-radius: 999px;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+        }
+        .dl-btn:hover { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35); }
+        .dl-btn:active { transform: translateY(0); }
+        .dl-btn svg { width: 26px; height: 26px; }
+        .meta { margin-top: 26px; font-size: 13px; opacity: 0.8; }
+        .meta span { display: inline-block; margin: 0 8px; }
+        .hashbox {
+            margin-top: 16px;
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 12px;
+            padding: 12px;
+            text-align: left;
+        }
+        .hashbox .lbl { font-size: 11px; opacity: 0.7; text-transform: uppercase; letter-spacing: 0.5px; }
+        .hashbox code {
+            display: block;
+            font-family: 'Consolas', 'Menlo', monospace;
+            font-size: 11px;
+            word-break: break-all;
+            margin: 6px 0 10px;
+            opacity: 0.95;
+        }
+        .hashbox .copy-btn {
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            padding: 7px 14px;
+            font-size: 12px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .hashbox .copy-btn:hover { background: rgba(255, 255, 255, 0.25); }
+        .features {
+            margin-top: 24px;
+            text-align: left;
+            font-size: 14px;
+            opacity: 0.92;
+            list-style: none;
+        }
+        .features li { padding: 6px 0; }
+        .features li::before { content: "✓ "; color: #b2ffd9; font-weight: 700; }
+        .note { margin-top: 22px; font-size: 12px; opacity: 0.7; line-height: 1.5; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="logo">
+            <img src="logo.png" alt="Zap Scanware logo">
+        </div>
+        <h1>Zap Scanware</h1>
+        <p class="tagline">Lightweight Android malware protection</p>
+        <p class="version">Version 1.47.17 (build 80) · Android 8.0+</p>
+
+        <a class="dl-btn" href="zap-scanware-debug.apk" download="zap-scanware-debug.apk">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 3v10m0 0l-4-4m4 4l4-4" stroke="#0d47a1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M5 17v2a2 2 0 002 2h10a2 2 0 002-2v-2" stroke="#0d47a1" stroke-width="2.2" stroke-linecap="round"/>
+            </svg>
+            Download APK
+        </a>
+
+        <div class="hashbox">
+            <div class="lbl">SHA-256 checksum</div>
+            <code id="sha256">4FF263B17E4F78AD320348646C9631B9D4E518FF81CC81CB18E518C62E8DA502</code>
+            <button class="copy-btn" onclick="copyHash()">Copy checksum</button>
+        </div>
+
+        <p class="meta">
+            <span>18.9 MB</span> · <span>APK</span> · <span>Signed</span> · <span>v1.47.17 (80)</span>
+        </p>
+
+        <ul class="features">
+            <li>Full app coverage on Android 11+: Settings and the Allow App screen now show a "Query all packages" banner with a one-tap grant button, so device scans see every installed app instead of a subset</li>
+            <li>Scans keep running when your phone sleeps: manual and scheduled scans hold a partial wake lock so Doze can't pause them</li>
+            <li>Fixed: local signature detections keep their real severity — findings now show the correct high-risk level (verified with industry-standard EICAR test-file detection)</li>
+            <li>Faster deep scans: app analysis now runs in parallel (bounded worker pool) and Room scan-cache writes are batched instead of one transaction per app</li>
+            <li>On-device instrumented tests for the scan pipeline (EICAR detection end to end, wake-lock survival, SHA-256 digest, threat scoring, risk bands, detection categories)</li>
+            <li>Built-in threat-intel keys: MalwareBazaar and VirusTotal work out of the box, and any key you save still overrides them</li>
+            <li>Dashboard Threats card opens the threat list (file/app name, category, risk, signature); Safe Browse caches DNS answers so the VPN uses less CPU, radio and battery</li>
+            <li>Scheduled scans are fully logged (trigger, start, finish share one ID) and no longer silently skip when Do Not Disturb can't be read</li>
+            <li>Scan transparency: the progress card names the app/file being scanned, and results list every scanned app and file; optional system-app scanning in Settings</li>
+            <li>Faster scans: files are analyzed in parallel and cloud lookups are prioritized, so first scans finish in a fraction of the time</li>
+            <li>Faster scans with an accurate progress percentage (the total is counted up front before scanning begins)</li>
+            <li>Allow App whitelist: every app gets an Allow/Disallow button so you can trust (or un-trust) it with one tap</li>
+            <li>Fixed: “Block always” from a warning prompt now re-seals the protection policy, so it can't be mistaken for tampering</li>
+            <li>Tamper-evident activity log: every background scan, block, and user action is hash-chained and MAC-signed, and the chain is verified on launch</li>
+            <li>Settings-password integrity: persistent lockout with backoff, 600k-iteration PBKDF2 with a hardware-keystore pepper, and a fail-closed marker</li>
+            <li>Optional Activity reporting: enroll a device to send redacted activity + heartbeat to a central web dashboard (off by default)</li>
+            <li>Per-category Off / Warn / Block: each content category warns with an on-screen prompt (OK/Cancel) or blocks outright</li>
+            <li>Safe Browse filters DNS over IPv4 and IPv6 (TCP fallback included) and shows only one warning prompt per visit, even with both enforcement paths on</li>
+            <li>Dashboard Safe Browse card: live protection status plus the session's blocked/warned domain list</li>
+            <li>Safe Browse is ON by default and every toggle change requires the settings password</li>
+            <li>Safe Browse stays on when the app is closed (foreground + swipe-away restart) and restarts after reboot and app updates</li>
+            <li>Incremental file scans: unchanged storage files reuse cached verdicts by content hash — rescans skip re-analysis</li>
+            <li>Much faster device scans: unchanged files skip hashing entirely (size/mtime fast-path), system apps excluded</li>
+            <li>Smaller scan progress ring with a looping sweep animation while scanning</li>
+            <li>Site warnings now pop up over the browser immediately (full-screen prompt), with wider adult/gambling detection</li>
+            <li>Safe Browse now guides you to Always-on VPN + Unrestricted battery so protection survives app-close</li>
+            <li>Dashboard shows the real items-scanned count; deleting a finding no longer asks for the password</li>
+            <li>Scheduled scans fixed: exact-time one-off chain, full scan with history, Run-now button, restricted-mode warning</li>
+            <li>Dashboard Clean now matches the Total (Clean = Items scanned − Threats); scan ring is red; Warn pops up over the browser</li>
+            <li>Warn/Block card draws directly over the browser — Cancel exits the page (grant “Display over other apps” once)</li>
+            <li>New “Prompt diagnostics” card pinpoints why a prompt didn't appear, with a Test-prompt button</li>
+            <li>Dashboard banner + instant test card the moment display-over-apps is granted; overlay failures fall back to notifications</li>
+            <li>Prompts pop over the browser with no overlay permission via a fresh high-importance channel + full-screen status check</li>
+            <li>Warn prompt now Blocks (exits the page + blocks the site from now on); display control lives below Safe Browse</li>
+            <li>Removed the redundant dashboard overlay banner — the control lives in Settings</li>
+            <li>Warn prompts carry Block-always / Continue-once buttons; Warn sites pause until allowed</li>
+            <li>Device scan covers your installed apps only — system apps are excluded with a visible audit record</li>
+            <li>APK scanner: one “Scan and Search APK Files” button finds and scans APKs on your device</li>
+            <li>VirusTotal panel: paste your API key in Settings — encrypted on-device, password-gated, no rebuild needed</li>
+            <li>Settings password: lock protection toggles and app uninstall / file delete behind Save</li>
+            <li>Content filter now blocks selected categories and your custom blocklist by default</li>
+            <li>Safe Browse fixed: a byte-order bug dropped all DNS and took the device offline — now verified by packet tests</li>
+            <li>Saving Threat intel, Scanning, Content filter, Blocklist or Safe Browse always asks for your password</li>
+            <li>Device scan categorises everything: system vs user apps, APKs, archives, executables, scripts, documents, media</li>
+            <li>New Settings toggles in “Scanning”: skip Documents (PDF/Office), Application/script (EXE/ZIP/JS), or Media (photos/video) from the file sweep — all default ON</li>
+            <li>Removed the “Prompts over browser” settings panel — Warn/Block prompt-over-browser still works if “Display over other apps” was granted in system settings, but there is no longer an in-app toggle or test button for it</li>
+            <li>Device scan coverage: app coverage summary on results card, package-visibility restriction notice with grant button, and “Query all packages” prompt when Android hides installed apps</li>
+            <li>Excluded apps expander: lists system apps and other excluded packages with skip reasons on the device-scan result card</li>
+            <li>Settings → Scanning: package-visibility status check with “Grant package visibility” button — on Android 11+, QUERY_ALL_PACKAGES must be granted in system settings or device scans only see a subset of installed apps</li>
+            <li>Dashboard “Items scanned” and “Clean” cards now have “Tap to View” to show the list of scanned/clean files, mirroring the Threats card</li>
+            <li>New scan toggles: skip Documents (PDF/Office), Applications (EXE/ZIP/JS), or Media (photos/video) from the file sweep — defaults scan everything as before</li>
+            <li>“Scan all files” walks the whole shared storage, not just downloads/documents</li>
+            <li>Opens instantly to the dashboard — no login, password or unlock gate</li>
+            <li>Faster scans: each file is hashed and rule-scanned in a single pass</li>
+            <li>Faster scans: batched hash/reputation writes and one history insert per scan</li>
+            <li>Fully scrollable results, history, log and APK-finder screens</li>
+            <li>Delete (files) / Uninstall (apps) with confirmation, plus Allow, on every finding</li>
+            <li>Honest scan coverage: warns when Android hides your files and links to All files access</li>
+            <li>Single scan control: pick Quick or Deep, then one Scan button</li>
+            <li>Release signing config; certificate-pinned VirusTotal &amp; MalwareBazaar connections</li>
+            <li>Hardened biometric key: user-auth required, StrongBox-backed, AES-GCM only via prompt</li>
+            <li>System apps now code-analyzed like user apps; cancel stops the cloud-lookup worker</li>
+            <li>Instrumented UI tests restored for production readiness</li>
+            <li>Durable hash index: recheck known files without re-hashing or re-spending quota</li>
+            <li>0–100 risk engine with Malware / PUA-PUP / Suspicious / Low-reputation / Unknown verdicts</li>
+            <li>Per-app result details: score, SHA-256, full VirusTotal line, indicators, actions</li>
+            <li>Incremental scans: unchanged apps reuse cached verdicts; real cancellation; scan history sessions</li>
+            <li>History rows open in the full app detail view; zero org.json left in production code</li>
+            <li>Every finding offers Remove (delete file / uninstall app) and Allow (suppress future findings)</li>
+            <li>Honest scan scope: downloads/media sweep with cap reporting — no false "whole device" claims</li>
+            <li>Auditable deep scan: every app ends clean, suspicious, unverified, queued or skipped</li>
+            <li>Device-wide scan of all installed apps</li>
+            <li>Quick (fast, offline) &amp; Deep (thorough) scan modes</li>
+            <li>Safe Browse: blocks risky links before they open</li>
+            <li>Auto-scans downloads and notifies you</li>
+            <li>Every app &amp; file hashed and reputation-checked (feeds, MalwareBazaar, VirusTotal)</li>
+            <li>MalwareBazaar Auth-Key + offline recent-detections signature mirror</li>
+            <li>Quota-aware cloud lookup queue with background continuation</li>
+            <li>Signed threat feeds (ECDSA P-256) &amp; bundled YARA rule engine</li>
+            <li>Multi-format scan: APK, AAB, DEX, EXE, scripts, archives, documents</li>
+            <li>Content filter: notify or block adult, gambling, piracy and more</li>
+            <li>Share a link from any browser to scan it</li>
+            <li>Scheduled scans (daily / weekly / custom)</li>
+            <li>Secure signature-provider keys (Keystore)</li>
+            <li>Structured event log &amp; diagnostics</li>
+            <li>Dark / light / system theme</li>
+            <li>Storage cleanup: clear cache &amp; temporary files</li>
+            <li>Fingerprint-protected, privacy-first</li>
+        </ul>
+
+        <p class="note">
+            Sideload only. Enable "Install from unknown sources" in your
+            device Settings before installing. After download, verify the
+            SHA-256 checksum above matches the file.
+        </p>
+    </div>
+
+    <script>
+        function copyHash() {
+            var t = document.getElementById('sha256').innerText;
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(t).then(function () {
+                    var b = document.querySelector('.copy-btn');
+                    b.innerText = 'Copied!';
+                    setTimeout(function () { b.innerText = 'Copy checksum'; }, 1500);
+                });
+            }
+        }
+    </script>
+</body>
+</html>

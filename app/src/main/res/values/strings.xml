@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Only resources actually referenced survive here: @string/app_name is used
+     by the manifest launcher label, @string/accessibility_service_description
+     by the accessibility-service config. The Compose UI hardcodes English, so
+     the legacy screen strings were removed (v1.19.0 cleanup). -->
+<resources>
+    <string name="app_name">Zap Scanware</string>
+    <string name="accessibility_service_description">Zap Scanware watches the site you are currently viewing and checks it against malware, phishing and content-category rules (adult, gambling, violence, drugs, piracy). It can warn you or block the page. Only the on-screen URL is read; no content is stored or sent anywhere.</string>
+</resources>

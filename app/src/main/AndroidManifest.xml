@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- Scoped storage: file picker returns a content URI; no broad media read needed. -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" android:minSdkVersion="33" />
+
+    <!-- Device scan must keep running when the screen turns off: a partial wake
+         lock prevents the CPU from sleeping mid-scan (Doze/app-standby would
+         otherwise kill the scan coroutine). Acquired for the scan duration only. -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+    <!-- Safe Browse persistence: restart link protection after reboot and keep
+         the DNS filter alive as a foreground service when the app is closed. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+
+    <!-- URL-guard warning/block prompts: lets the prompt notification carry a
+         full-screen intent so the on-screen warning appears over the browser
+         even when a background activity start would be blocked (Android 10+).
+         Install-time permission on API 34+; the user can revoke it in system
+         Settings → Notifications if they only want shade entries. -->
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+
+    <!-- Overlay prompt: draws the Warn/Block card directly over the browser
+         the moment a risky domain is visited (no shade navigation). The user
+         grants this once via system Settings → "Display over other apps". -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
+    <!-- Security scanner: enumerating ALL installed apps is core functionality.
+         Without this, Android 11+ hides user-installed apps and the device scan
+         only sees system apps. Google permits QUERY_ALL_PACKAGES for antivirus/
+         security apps when it is the app's core purpose. -->
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+
+    <!-- Optional: lets the user grant "All files access" so the app can search
+         the whole device for APK files to scan. Requested at runtime from
+         Settings; the app degrades gracefully without it. -->
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
+
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:mimeType="application/vnd.android.package-archive" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.INSTALL_PACKAGE" />
+        </intent>
+    </queries>
+
+    <application
+        android:name=".MalwareShieldApp"
+        android:allowBackup="false"
+        android:usesCleartextTraffic="false"
+        android:networkSecurityConfig="@xml/network_security_config"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.ZapScanware">
+
+        <activity
+            android:name=".presentation.MainActivity"
+            android:exported="true"
+            android:theme="@style/Theme.ZapScanware"
+            android:launchMode="singleTop">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- Share target: "Scan link" — receive URLs shared from any browser. -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+
+            <!-- Deep links for URL validation: explicit schemes only.
+                 host="*" is invalid and silently drops the filter. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" />
+                <data android:scheme="http" />
+            </intent-filter>
+        </activity>
+
+        <!-- Full-screen warning shown by the URL guard for blocked categories.
+             Internal only: not exported, excluded from recents and history. -->
+        <activity
+            android:name=".presentation.BlockActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:launchMode="singleTop"
+            android:theme="@style/Theme.ZapScanware" />
+
+        <!-- On-screen warning shown by the URL guard for NOTIFY categories.
+             Internal only: not exported, excluded from recents and history. -->
+        <activity
+            android:name=".presentation.WarnActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:launchMode="singleTop"
+            android:theme="@style/Theme.ZapScanware" />
+
+        <!-- Safe Browse: DNS-filtering VPN that blocks risky/blocked domains
+             before a connection is made. Requires user VPN consent. Runs as a
+             foreground service (specialUse: local DNS filtering) so link
+             protection stays up when the app is closed. -->
+        <service
+            android:name=".core.safebrowse.SafeBrowseVpnService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse"
+            android:permission="android.permission.BIND_VPN_SERVICE">
+            <intent-filter>
+                <action android:name="android.net.VpnService" />
+            </intent-filter>
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Local DNS-filtering VPN for Safe Browse link protection. Runs only while the user keeps Safe Browse enabled; no data leaves the device except normal upstream DNS resolution." />
+        </service>
+
+        <!-- Warn prompt buttons ("Continue once" / "Block always"): explicit
+             intents only, non-exported, so no permission is needed. -->
+        <receiver
+            android:name=".core.content.PromptActionReceiver"
+            android:exported="false" />
+
+        <!-- Restart Safe Browse after a device reboot (and after an app update
+             when protection is desired). MY_PACKAGE_REPLACED is delivered only
+             to the updated package, so the non-exported receiver gets it. -->
+        <receiver
+            android:name=".core.safebrowse.BootReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Automatic URL guard: reads the URL of the currently-visited app and
+             checks it against malware/phishing feeds. User must enable this in
+             Settings → Accessibility. -->
+        <service
+            android:name=".core.security.UrlGuardAccessibilityService"
+            android:exported="false"
+            android:label="@string/app_name"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/accessibility_service_config" />
+        </service>
+    </application>
+</manifest>

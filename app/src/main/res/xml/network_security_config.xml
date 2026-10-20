@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Cleartext traffic is blocked. Certificate pinning was removed: the
+         previous placeholder pins (AAAA…/BBBB…) did not match the real servers
+         and silently broke every VirusTotal / MalwareBazaar request. -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+
+    <!-- Debug builds may trust user-installed CAs for traffic inspection. -->
+    <debug-override>
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" />
+        </trust-anchors>
+    </debug-override>
+</network-security-config>
