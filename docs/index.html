@@ -108,7 +108,7 @@
         </div>
         <h1>Zap Scanware</h1>
         <p class="tagline">Lightweight Android malware protection</p>
-        <p class="version">Version 1.47.20 (build 83) · Android 8.0+</p>
+        <p class="version">Version 1.47.21 (build 84) · Android 8.0+</p>
 
         <a class="dl-btn" href="zap-scanware-debug.apk" download="zap-scanware-debug.apk">
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -120,15 +120,17 @@
 
         <div class="hashbox">
             <div class="lbl">SHA-256 checksum</div>
-            <code id="sha256">3F26364566087858CE04537A81E4C300AFBCA9D66260771F9EC72412E0941EDE</code>
+            <code id="sha256">403E6828076DBE3C6E7226424FFF01A1835B10D355E4972DC8C29B96DDB9AEB9</code>
             <button class="copy-btn" onclick="copyHash()">Copy checksum</button>
         </div>
 
         <p class="meta">
-            <span>18.9 MB</span> · <span>APK</span> · <span>Signed</span> · <span>v1.47.20 (83)</span>
+            <span>18.9 MB</span> · <span>APK</span> · <span>Signed</span> · <span>v1.47.21 (84)</span>
         </p>
 
         <ul class="features">
+            <li>Scan health report: after every device scan, a plain-language card shows whether storage access, the sweep caps, package visibility, app analysis, and threat-intel sources were all fully available — and exactly what was limited</li>
+            <li>Wider storage coverage: device scans now also walk removable SD-card volumes, Android/media, and hidden folders (while skipping OS-restricted Android/data, Android/obb, and cache noise)</li>
             <li>Fixed: the first-run “What Zap Scanware can scan / Coverage limits” screen no longer reappears over the dashboard on every launch — dismissal is now persisted, the overlay is opaque, and the cards scroll with the button always reachable</li>
             <li>Device-scan coverage improvements: file-scan caps raised (5000 files / 200 MB “all files” sweep), system-app scanning on by default, package-visibility grant gate on the scan hero, unreachable-partitions warning, and a “Re-scan excluded apps” button</li>
             <li>Full app coverage on Android 11+: Settings and the Allow App screen now show a "Query all packages" banner with a one-tap grant button, so device scans see every installed app instead of a subset</li>

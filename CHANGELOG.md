@@ -5,6 +5,26 @@ All notable changes to MalwareShield are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.47.21] - 2026-10-21
+
+### Added
+- **Scan health report.** New pure `ScanHealth` derives a post-scan health
+  report from `FullScanResult`; `DeviceScanScreen` renders a “Scan health” card
+  with a green/amber line per check — storage access (All-files access), sweep
+  caps/truncation, package visibility, app analysis (failed/skipped),
+  threat-intel readiness, and scope (file types + system apps). `ScanHealthTest`
+  (7 tests).
+- **Wider storage coverage.** `ApkFinder` now walks every mounted volume
+  (`storageRoots()`, including removable SD cards), `Android/media`, and hidden
+  directories, while a pure `isDeniedDirPath` denylist skips OS-restricted
+  `Android/data` / `Android/obb` plus `lost+found`, `.thumbnails`, `.cache` and
+  `.trash` (`ApkFinderScopeTest`, 4 tests). MediaStore queries now use the
+  volume-aware `filesCollection()`.
+- `ScanMode` copy states the internal + removable + `Android/media` scope.
+
+### Version
+- versionCode 84, versionName "1.47.21" (394 unit tests).
+
 ## [1.47.20] - 2026-10-21
 
 ### Added

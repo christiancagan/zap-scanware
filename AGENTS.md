@@ -1092,6 +1092,16 @@ APK paths. 374 unit tests + 17 instrumented tests, all green. versionCode 71.
   existing seals stay valid, and `setScanSystemApps` re-seals after an
   out-of-draft write. `PolicySnapshot.strictDefaults` restores
   `scanOnInstall`/`scanSystemApps`. 383 unit tests. versionCode 83.
+- **v1.47.21** (scan-health diagnostics + wider storage coverage): `ApkFinder`
+  walks every mounted volume (`storageRoots()`, removable SD cards included),
+  `Android/media`, and hidden directories, with a pure `isDeniedDirPath`
+  denylist (`Android/data`, `Android/obb`, `lost+found`, `.thumbnails`, `.cache`,
+  `.trash`; `ApkFinderScopeTest` 4) and a volume-aware MediaStore
+  `filesCollection()`. New pure `ScanHealth` derives a post-scan health report
+  (storage access, sweep truncation, package visibility, app-analysis gaps,
+  threat-intel readiness, scope) rendered as a “Scan health” card in
+  `DeviceScanScreen` (`ScanHealthTest` 7). `ScanMode` copy updated. 394 unit
+  tests. versionCode 84.
 
 **Note on "no telemetry":** the app has no telemetry by default. Activity
 reporting (Settings → Activity reporting) is opt-in per device and described in
