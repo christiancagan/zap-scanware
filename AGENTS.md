@@ -1118,6 +1118,11 @@ APK paths. 374 unit tests + 17 instrumented tests, all green. versionCode 71.
   `listUserAppsWithStats()`; `AllowAppViewModel` no longer cancels in-flight
   refreshes, and `AllowAppScreen` adds Refresh plus a visible/system empty-state
   hint. 396 unit tests. versionCode 86.
+- **v1.47.24** (scheduled scanned-items persistence): `ScheduledScanWorker`
+  now writes `scannedItemsJson` from `result.scannedAppLabels +
+  result.scannedFileNames`, so scheduled sessions expand to the scanned-item
+  list in History and populate the dashboard recent lists like manual scans.
+  396 unit tests. versionCode 87.
 
 **Note on "no telemetry":** the app has no telemetry by default. Activity
 reporting (Settings → Activity reporting) is opt-in per device and described in

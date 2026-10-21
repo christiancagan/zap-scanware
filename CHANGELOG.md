@@ -5,6 +5,19 @@ All notable changes to MalwareShield are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.47.24] - 2026-10-21
+
+### Fixed
+- **Scheduled scans lost their scanned-item list.** `ScheduledScanWorker`
+  persisted a session with `appsScanned`/`filesScanned` totals but never set
+  `scannedItemsJson`, so scheduled runs showed the right count yet an empty
+  “Show scanned items” expander (and empty dashboard recent-scan lists).
+  The worker now persists `result.scannedAppLabels + result.scannedFileNames`
+  exactly like a manual run.
+
+### Version
+- versionCode 87, versionName "1.47.24" (396 unit tests).
+
 ## [1.47.23] - 2026-10-21
 
 ### Fixed
