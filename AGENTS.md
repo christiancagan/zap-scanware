@@ -1142,6 +1142,12 @@ APK paths. 374 unit tests + 17 instrumented tests, all green. versionCode 71.
   sample for support. Verified on an API 34 emulator with a sideloaded test APK
   (listed + Allowed persists) and with no user apps (223 preinstalled apps
   auto-shown). 396 unit tests. versionCode 89.
+- **v1.47.27** (Allow App label clarity): the list header is now
+  `Apps you can allow (N)` (title size) with a plain-language hint underneath,
+  and the per-app status/source pills are solid high-contrast `labelMedium`
+  tags (green `Allowed`, neutral `Not allowed`, purple `APK`/`Store`, grey
+  `System`) readable in both switch states; the switch caption is larger and
+  colour-coded. 396 unit tests. versionCode 90.
 
 **Note on "no telemetry":** the app has no telemetry by default. Activity
 reporting (Settings → Activity reporting) is opt-in per device and described in
