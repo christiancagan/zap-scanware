@@ -5,6 +5,26 @@ All notable changes to MalwareShield are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.47.23] - 2026-10-21
+
+### Fixed
+- **History coverage count.** The History header now derives `Scans`, `Items
+  scanned`, and `Threats` from completed device sessions (excluding `INSTALL`),
+  so it agrees with the dashboard's “Items scanned” tile instead of counting
+  only finding rows. Each expanded session also gains a “Show scanned items
+  (N)” expander backed by `ScanSessionEntity.scannedItemsJson`, listing every
+  app/file that session covered (50 shown + remainder).
+- **Allow App empty list.** `InstalledAppScanner` now enumerates via
+  `getInstalledApplications` (non-null `ApplicationInfo`/flags) with a
+  `getInstalledPackages` fallback, and exposes `listUserAppsWithStats()`
+  (visible/system counts). `AllowAppViewModel.refresh()` no longer cancels an
+  in-flight load (which could surface a spurious cancellation error), and the
+  screen adds a Refresh action plus a diagnostic empty-state line
+  (“N packages visible, M system — no user-installed apps.”).
+
+### Version
+- versionCode 86, versionName "1.47.23" (396 unit tests).
+
 ## [1.47.22] - 2026-10-21
 
 ### Changed

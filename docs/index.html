@@ -108,7 +108,7 @@
         </div>
         <h1>Zap Scanware</h1>
         <p class="tagline">Lightweight Android malware protection</p>
-        <p class="version">Version 1.47.22 (build 85) · Android 8.0+</p>
+        <p class="version">Version 1.47.23 (build 86) · Android 8.0+</p>
 
         <a class="dl-btn" href="zap-scanware-debug.apk" download="zap-scanware-debug.apk">
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -120,15 +120,17 @@
 
         <div class="hashbox">
             <div class="lbl">SHA-256 checksum</div>
-            <code id="sha256">0AAB3313CA90E641124319D87548D490FA2AB2A99C5DAE56A9FDB21CC87A9187</code>
+            <code id="sha256">68054C75CDE3B20A946B5049EE91BEADFBFEF4926F2D120EA84251FCFD1A9F38</code>
             <button class="copy-btn" onclick="copyHash()">Copy checksum</button>
         </div>
 
         <p class="meta">
-            <span>18.9 MB</span> · <span>APK</span> · <span>Signed</span> · <span>v1.47.22 (85)</span>
+            <span>18.9 MB</span> · <span>APK</span> · <span>Signed</span> · <span>v1.47.23 (86)</span>
         </p>
 
         <ul class="features">
+            <li>History now reports real coverage: the header shows Scans / Items scanned / Threats from completed sessions (matching the dashboard), and any session can expand to list every scanned app and file</li>
+            <li>Allow App now reliably lists all user-installed apps (system apps excluded, sideloaded APKs included), with a Refresh action and a visible/system count if the list is genuinely empty</li>
             <li>Allow App rebuilt: every user-installed app (system apps excluded, sideloaded APKs included) is listed with an Allow/Disallow switch plus “Allowed / Not allowed” and “APK / Store” tags; the list reloads when opened and offers Retry if loading fails</li>
             <li>Scan health report: after every device scan, a plain-language card shows whether storage access, the sweep caps, package visibility, app analysis, and threat-intel sources were all fully available — and exactly what was limited</li>
             <li>Wider storage coverage: device scans now also walk removable SD-card volumes, Android/media, and hidden folders (while skipping OS-restricted Android/data, Android/obb, and cache noise)</li>

@@ -1109,6 +1109,15 @@ APK paths. 374 unit tests + 17 instrumented tests, all green. versionCode 71.
   best-effort `installSource` (`installSourceFor`, pure + `InstallSourceTest`),
   and `AllowAppViewModel` gains error state and stale-refresh cancellation.
   Settings → Allowed apps shows an `Allowed` tag. 396 unit tests. versionCode 85.
+- **v1.47.23** (History counts + Allow App load fix): History's header now
+  derives `Scans` / `Items scanned` / `Threats` from completed non-INSTALL
+  sessions (matching the dashboard) instead of finding-row counts, and each
+  session expands to a “Show scanned items (N)” list from
+  `scannedItemsJson`. `InstalledAppScanner` enumerates with
+  `getInstalledApplications` (fallback `getInstalledPackages`) and exposes
+  `listUserAppsWithStats()`; `AllowAppViewModel` no longer cancels in-flight
+  refreshes, and `AllowAppScreen` adds Refresh plus a visible/system empty-state
+  hint. 396 unit tests. versionCode 86.
 
 **Note on "no telemetry":** the app has no telemetry by default. Activity
 reporting (Settings → Activity reporting) is opt-in per device and described in
