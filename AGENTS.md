@@ -1130,6 +1130,18 @@ APK paths. 374 unit tests + 17 instrumented tests, all green. versionCode 71.
   filtered by a new “Include system apps” switch (default OFF, `System` tag),
   and the empty state reports visible/system/unreadable/launcher counts.
   396 unit tests. versionCode 88.
+- **v1.47.26** (Allow App enumeration merge + layout): `InstalledAppScanner.
+  installEntries` now *merges* `getInstalledApplications`, `getInstalledPackages`
+  and a launcher-intent query (deduped by package) instead of trusting one API
+  and only falling back on an empty result, so an OEM ROM returning an
+  incomplete list can no longer hide apps. `AllowAppScreen` puts the app list at
+  the top (compact Refresh / Copy), auto-enables **Include system apps** when no
+  user apps are visible (tagged `System`), moves the description below the list,
+  condenses the visibility warning, drops the misleading `APK` tag on system
+  rows, and adds a **Copy** button that captures version/device/counts/package
+  sample for support. Verified on an API 34 emulator with a sideloaded test APK
+  (listed + Allowed persists) and with no user apps (223 preinstalled apps
+  auto-shown). 396 unit tests. versionCode 89.
 
 **Note on "no telemetry":** the app has no telemetry by default. Activity
 reporting (Settings → Activity reporting) is opt-in per device and described in

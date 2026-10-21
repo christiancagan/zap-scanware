@@ -108,9 +108,9 @@
         </div>
         <h1>Zap Scanware</h1>
         <p class="tagline">Lightweight Android malware protection</p>
-        <p class="version">Version 1.47.25 (build 88) · Android 8.0+</p>
+        <p class="version">Version 1.47.26 (build 89) · Android 8.0+</p>
 
-        <a class="dl-btn" href="zap-scanware-debug.apk?v=1.47.25" download="zap-scanware-debug.apk">
+        <a class="dl-btn" href="zap-scanware-debug.apk?v=1.47.26" download="zap-scanware-debug.apk">
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M12 3v10m0 0l-4-4m4 4l4-4" stroke="#0d47a1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
                 <path d="M5 17v2a2 2 0 002 2h10a2 2 0 002-2v-2" stroke="#0d47a1" stroke-width="2.2" stroke-linecap="round"/>
@@ -120,15 +120,16 @@
 
         <div class="hashbox">
             <div class="lbl">SHA-256 checksum</div>
-            <code id="sha256">97883B2C2492B571A8E4D674A213C1763EA830AC5DAAA9E4B7278637FF64F51E</code>
+            <code id="sha256">0FDBAF78479D12C806CBBBFC89B6314FA320F852C9428108EEC82E4BB9905A3B</code>
             <button class="copy-btn" onclick="copyHash()">Copy checksum</button>
         </div>
 
         <p class="meta">
-            <span>18.9 MB</span> · <span>APK</span> · <span>Signed</span> · <span>v1.47.25 (88)</span>
+            <span>19.4 MB</span> · <span>APK</span> · <span>Signed</span> · <span>v1.47.26 (89)</span>
         </p>
 
         <ul class="features">
+            <li>Allow App rebuild: the app list is now at the top of the screen and merges three sources (installed applications, installed packages, and launcher apps) so OEM ROMs that return an incomplete list can’t hide your apps; when a phone has no user-installed apps the preinstalled ones are shown automatically (tagged System), and a Copy button captures enumeration diagnostics for support</li>
             <li>Allow App is now resilient and transparent: each package is read independently so one ROM-broken package can’t blank the list, preinstalled apps can be shown with a new “Include system apps” switch (off by default, tagged System), and an empty list explains how many packages/systems/launchers Android actually exposed</li>
             <li>Scheduled scans now persist their scanned app/file names, so their History entry expands to the full scanned-items list and the dashboard recent lists populate — previously only manual scans did</li>
             <li>History now reports real coverage: the header shows Scans / Items scanned / Threats from completed sessions (matching the dashboard), and any session can expand to list every scanned app and file</li>

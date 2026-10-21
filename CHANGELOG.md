@@ -5,6 +5,35 @@ All notable changes to MalwareShield are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.47.26] - 2026-10-22
+
+### Fixed
+- **Allow App could still be empty on some phones.** Enumeration merged only
+  one PackageManager API at a time and only fell back when that API returned
+  *nothing*; a ROM that returned a non-empty but incomplete list (e.g. system
+  apps only) left the user-app list empty. `InstalledAppScanner.installEntries`
+  now *merges* `getInstalledApplications`, `getInstalledPackages`, and a
+  launcher-intent query (deduped by package), so any one broken source can no
+  longer hide apps.
+- **Preinstalled-only phones showed an empty picker.** When no user-installed
+  apps are visible but preinstalled apps are, the screen now turns on
+  **Include system apps** automatically (tagged `System`) so the list is never
+  empty; the subtitle says so.
+
+### Changed
+- **Allow App layout.** The app list now sits directly under the header (with
+  compact Refresh / Copy actions) so it is visible without scrolling; the
+  description moved below the list and the restrictive-visibility warning is a
+  single line with a Settings shortcut.
+- **Support diagnostics.** A **Copy** button copies version, device/Android
+  level, visible/system/unreadable/launcher/list counts, and a sample of
+  package names to the clipboard for troubleshooting.
+- System-app rows no longer show the misleading `APK` tag (they show `System`
+  only).
+
+### Version
+- versionCode 89, versionName "1.47.26" (396 unit tests).
+
 ## [1.47.25] - 2026-10-21
 
 ### Fixed
