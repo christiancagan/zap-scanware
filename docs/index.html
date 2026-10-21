@@ -108,7 +108,7 @@
         </div>
         <h1>Zap Scanware</h1>
         <p class="tagline">Lightweight Android malware protection</p>
-        <p class="version">Version 1.47.17 (build 80) · Android 8.0+</p>
+        <p class="version">Version 1.47.18 (build 81) · Android 8.0+</p>
 
         <a class="dl-btn" href="zap-scanware-debug.apk" download="zap-scanware-debug.apk">
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -120,15 +120,17 @@
 
         <div class="hashbox">
             <div class="lbl">SHA-256 checksum</div>
-            <code id="sha256">4FF263B17E4F78AD320348646C9631B9D4E518FF81CC81CB18E518C62E8DA502</code>
+            <code id="sha256">00497A20C50F0D6DF42534F026D2C9AF6348DF57B44250F5819CE32E04FED460</code>
             <button class="copy-btn" onclick="copyHash()">Copy checksum</button>
         </div>
 
         <p class="meta">
-            <span>18.9 MB</span> · <span>APK</span> · <span>Signed</span> · <span>v1.47.17 (80)</span>
+            <span>18.9 MB</span> · <span>APK</span> · <span>Signed</span> · <span>v1.47.18 (81)</span>
         </p>
 
         <ul class="features">
+            <li>First-run coverage disclosure: a one-time screen explains what the scanner can and cannot see — Android 11+ “Query all packages” gating, scoped-storage limits, and system partitions that require root</li>
+            <li>Device-scan coverage improvements: file-scan caps raised (5000 files / 200 MB “all files” sweep), system-app scanning on by default, package-visibility grant gate on the scan hero, unreachable-partitions warning, and a “Re-scan excluded apps” button</li>
             <li>Full app coverage on Android 11+: Settings and the Allow App screen now show a "Query all packages" banner with a one-tap grant button, so device scans see every installed app instead of a subset</li>
             <li>Scans keep running when your phone sleeps: manual and scheduled scans hold a partial wake lock so Doze can't pause them</li>
             <li>Fixed: local signature detections keep their real severity — findings now show the correct high-risk level (verified with industry-standard EICAR test-file detection)</li>
