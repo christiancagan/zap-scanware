@@ -1301,7 +1301,9 @@ build. Publishing means:
 3. **Build**: `./gradlew testDebugUnitTest assembleDebug assembleRelease` — tests must pass.
 4. **Stage the APK for the download page**: copy
    `app/build/outputs/apk/debug/zap-scanware-debug.apk` over
-   `docs/zap-scanware-debug.apk` (GitHub Pages serves this file).
+   `docs/zap-scanware-debug.apk` (GitHub Pages serves this file). Bump the
+   `?v=` query on the download link in `docs/index.html` to the new version so
+   the ~10-minute CDN cache cannot serve the previous APK.
 5. **Update the GitHub Pages landing page** `docs/index.html` — it hardcodes the
    values, so refresh all three (compute with
    `(Get-FileHash docs/zap-scanware-debug.apk -Algorithm SHA256).Hash` and the
