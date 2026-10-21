@@ -108,7 +108,7 @@
         </div>
         <h1>Zap Scanware</h1>
         <p class="tagline">Lightweight Android malware protection</p>
-        <p class="version">Version 1.47.24 (build 87) · Android 8.0+</p>
+        <p class="version">Version 1.47.25 (build 88) · Android 8.0+</p>
 
         <a class="dl-btn" href="zap-scanware-debug.apk" download="zap-scanware-debug.apk">
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -120,15 +120,16 @@
 
         <div class="hashbox">
             <div class="lbl">SHA-256 checksum</div>
-            <code id="sha256">07564A914E016563AAB1076A4E49DD3822564E1FA7C0E392225529BF9F7E12D9</code>
+            <code id="sha256">97883B2C2492B571A8E4D674A213C1763EA830AC5DAAA9E4B7278637FF64F51E</code>
             <button class="copy-btn" onclick="copyHash()">Copy checksum</button>
         </div>
 
         <p class="meta">
-            <span>18.9 MB</span> · <span>APK</span> · <span>Signed</span> · <span>v1.47.24 (87)</span>
+            <span>18.9 MB</span> · <span>APK</span> · <span>Signed</span> · <span>v1.47.25 (88)</span>
         </p>
 
         <ul class="features">
+            <li>Allow App is now resilient and transparent: each package is read independently so one ROM-broken package can’t blank the list, preinstalled apps can be shown with a new “Include system apps” switch (off by default, tagged System), and an empty list explains how many packages/systems/launchers Android actually exposed</li>
             <li>Scheduled scans now persist their scanned app/file names, so their History entry expands to the full scanned-items list and the dashboard recent lists populate — previously only manual scans did</li>
             <li>History now reports real coverage: the header shows Scans / Items scanned / Threats from completed sessions (matching the dashboard), and any session can expand to list every scanned app and file</li>
             <li>Allow App now reliably lists all user-installed apps (system apps excluded, sideloaded APKs included), with a Refresh action and a visible/system count if the list is genuinely empty</li>

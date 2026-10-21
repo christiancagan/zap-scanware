@@ -1123,6 +1123,13 @@ APK paths. 374 unit tests + 17 instrumented tests, all green. versionCode 71.
   result.scannedFileNames`, so scheduled sessions expand to the scanned-item
   list in History and populate the dashboard recent lists like manual scans.
   396 unit tests. versionCode 87.
+- **v1.47.25** (Allow App resilience + system-app opt-in): package mapping is
+  per-item (`runCatching` per app, safe label fallback) so one bad OEM package
+  no longer empties the picker; `UserAppListing` gains `allApps`,
+  `unreadablePackages`, `launcherPackages`. `AllowAppScreen` lists `allApps`
+  filtered by a new “Include system apps” switch (default OFF, `System` tag),
+  and the empty state reports visible/system/unreadable/launcher counts.
+  396 unit tests. versionCode 88.
 
 **Note on "no telemetry":** the app has no telemetry by default. Activity
 reporting (Settings → Activity reporting) is opt-in per device and described in

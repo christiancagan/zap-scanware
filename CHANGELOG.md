@@ -5,6 +5,24 @@ All notable changes to MalwareShield are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.47.25] - 2026-10-21
+
+### Fixed
+- **Allow App could blank out on one bad package.** Enumeration wrapped the
+  entire `getInstalledApplications`/`getInstalledPackages` pass in one
+  `runCatching`, so a single package throwing in `loadLabel`/install-source
+  lookup produced an empty list. Each package is now mapped independently
+  (failures counted as “unreadable”), with safe label fallbacks.
+- **Empty picker is now explainable and recoverable.** `UserAppListing` also
+  carries the non-self `allApps` list, unreadable count, and a distinct
+  launcher-package count. The screen gains an **Include system apps** switch
+  (default OFF, system apps tagged `System`) for phones whose apps are all
+  preinstalled, and the empty state reports packages visible / system /
+  unreadable / launcher apps.
+
+### Version
+- versionCode 88, versionName "1.47.25" (396 unit tests).
+
 ## [1.47.24] - 2026-10-21
 
 ### Fixed
