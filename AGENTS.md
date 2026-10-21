@@ -1078,6 +1078,20 @@ APK paths. 374 unit tests + 17 instrumented tests, all green. versionCode 71.
   implemented by the app's `SingletonComponent` (ClassCastException) — reuse a
   `main`-source entry point (`ScheduledScanWorker.ScanWorkerEntryPoint`).
   374 unit tests + 24 instrumented tests, all green. versionCode 73.
+- **v1.47.20** (install-time scanning): new non-exported `PackageChangeReceiver`
+  (`PACKAGE_ADDED`/`PACKAGE_REPLACED`) schedules `PackageScanWorker`, which
+  runs the new single-package `InstalledPackageScanner` (SHA-256, full
+  `ScanDispatcher` pipeline, offline feed reputation, cloud queue for unknown
+  hashes). The worker checks `scanOnInstall` (Settings → Scanning, default
+  ON), persists an `INSTALL` session + finding to History, and notifies for
+  malicious/HIGH+ results; dashboard latest-threat tiles ignore install
+  sessions via `ScanSessionDao.latestDeviceScan()`/`getAllDeviceScans()`.
+  Permission/signature scoring extracted to pure `AppPermissionScoring` so
+  the device scan and install scan agree. `scanSystemApps` now defaults ON
+  everywhere, while the policy seal keeps the legacy `false` fallback so
+  existing seals stay valid, and `setScanSystemApps` re-seals after an
+  out-of-draft write. `PolicySnapshot.strictDefaults` restores
+  `scanOnInstall`/`scanSystemApps`. 383 unit tests. versionCode 83.
 
 **Note on "no telemetry":** the app has no telemetry by default. Activity
 reporting (Settings → Activity reporting) is opt-in per device and described in
@@ -1097,7 +1111,7 @@ MalwareShield/
 │       │   ├── entities/ (ScanHistoryEntity, AppInventoryEntity, ScanCacheEntity,
 │       │   │              FileScanCacheEntity, ScanSessionEntity, ConfigLockEntity)
 │       │   ├── repository/ (MalwareRepository, VirusTotalRepository,
-│       │   │                BackgroundScanWorker, CloudLookupWorker,
+│       │   │                CloudLookupWorker, PackageScanWorker,
 │       │   │                ScheduledScanWorker, SignatureFeedWorker)
 │       ├── di/ (AppModule, AppComponent)
 │       ├── presentation/
@@ -1150,6 +1164,9 @@ MalwareShield/
 │           │   ├── APKAnalyzer.kt
 │           │   ├── ApkFinder.kt
 │           │   ├── AppInventoryCollector.kt
+│           │   ├── AppPermissionScoring.kt
+│           │   ├── InstalledPackageScanner.kt
+│           │   ├── PackageChangeReceiver.kt
 │           │   ├── AppScanAudit.kt (+ Report, Store)
 │           │   ├── ConfigLockManager.kt
 │           │   ├── PasswordHasher.kt

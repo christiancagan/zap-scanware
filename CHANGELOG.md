@@ -5,6 +5,36 @@ All notable changes to MalwareShield are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.47.20] - 2026-10-21
+
+### Added
+- **Install-time scanning.** New non-exported `PackageChangeReceiver`
+  (`PACKAGE_ADDED`/`PACKAGE_REPLACED`) schedules a `PackageScanWorker` that
+  analyzes the just-installed or updated app — SHA-256, the full static
+  analysis pipeline, offline feed reputation, and the quota-aware cloud queue
+  for unknown hashes — then persists an `INSTALL` session plus any finding to
+  History and notifies for malicious or HIGH+ results. Toggle:
+  Settings → Scanning → “Scan apps when installed” (default ON).
+- Permission/signature scoring moved into the shared pure
+  `AppPermissionScoring`, so the device scan and the new single-package
+  `InstalledPackageScanner` produce identical verdicts.
+- `AppPermissionScoringTest` (7 tests); `EditableSettingsTest` gains
+  protective-default and strict-policy-default cases (383 tests total).
+
+### Changed
+- Device-scan latest-threat tiles ignore install sessions via
+  `ScanSessionDao.latestDeviceScan()` / `getAllDeviceScans()`; History labels
+  `mode="INSTALL"` as “Install Scan”.
+- `scanSystemApps` now defaults ON end to end (runtime + settings + scanner).
+  The protected-policy seal keeps the legacy `false` fallback so existing
+  users' seals remain valid, and `setScanSystemApps` re-seals after an
+  out-of-draft write.
+- `PolicySnapshot.strictDefaults` restores `scanOnInstall` and
+  `scanSystemApps` when the policy seal fails.
+
+### Version
+- versionCode 83, versionName "1.47.20".
+
 ## [1.47.10] - 2026-10-17
 
 ### Fixed

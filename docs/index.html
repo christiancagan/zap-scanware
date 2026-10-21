@@ -108,7 +108,7 @@
         </div>
         <h1>Zap Scanware</h1>
         <p class="tagline">Lightweight Android malware protection</p>
-        <p class="version">Version 1.47.19 (build 82) · Android 8.0+</p>
+        <p class="version">Version 1.47.20 (build 83) · Android 8.0+</p>
 
         <a class="dl-btn" href="zap-scanware-debug.apk" download="zap-scanware-debug.apk">
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -120,12 +120,12 @@
 
         <div class="hashbox">
             <div class="lbl">SHA-256 checksum</div>
-            <code id="sha256">1D89BF1CA0F84894A4C34DA392B3206B228C2C1BE314A9A5A57E6C6035C46B08</code>
+            <code id="sha256">3F26364566087858CE04537A81E4C300AFBCA9D66260771F9EC72412E0941EDE</code>
             <button class="copy-btn" onclick="copyHash()">Copy checksum</button>
         </div>
 
         <p class="meta">
-            <span>18.9 MB</span> · <span>APK</span> · <span>Signed</span> · <span>v1.47.19 (82)</span>
+            <span>18.9 MB</span> · <span>APK</span> · <span>Signed</span> · <span>v1.47.20 (83)</span>
         </p>
 
         <ul class="features">
@@ -152,6 +152,7 @@
             <li>Dashboard Safe Browse card: live protection status plus the session's blocked/warned domain list</li>
             <li>Safe Browse is ON by default and every toggle change requires the settings password</li>
             <li>Safe Browse stays on when the app is closed (foreground + swipe-away restart) and restarts after reboot and app updates</li>
+            <li>Install-time protection: every newly installed or updated app is scanned automatically (hash + static analysis + reputation) and appears in History as an “Install Scan”</li>
             <li>Incremental file scans: unchanged storage files reuse cached verdicts by content hash — rescans skip re-analysis</li>
             <li>Much faster device scans: unchanged files skip hashing entirely (size/mtime fast-path), system apps excluded</li>
             <li>Smaller scan progress ring with a looping sweep animation while scanning</li>
