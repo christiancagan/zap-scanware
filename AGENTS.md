@@ -1102,6 +1102,13 @@ APK paths. 374 unit tests + 17 instrumented tests, all green. versionCode 71.
   threat-intel readiness, scope) rendered as a “Scan health” card in
   `DeviceScanScreen` (`ScanHealthTest` 7). `ScanMode` copy updated. 394 unit
   tests. versionCode 84.
+- **v1.47.22** (Allow App rebuild): `AllowAppScreen` lists all non-system
+  installed apps (sideloaded APKs included) with an Allow/Disallow `Switch` and
+  `Allowed` / `Not allowed` + `APK` / `Store` tags; it refreshes on entry and
+  shows an error + Retry state. `InstalledAppScanner.UserApp` gains a
+  best-effort `installSource` (`installSourceFor`, pure + `InstallSourceTest`),
+  and `AllowAppViewModel` gains error state and stale-refresh cancellation.
+  Settings → Allowed apps shows an `Allowed` tag. 396 unit tests. versionCode 85.
 
 **Note on "no telemetry":** the app has no telemetry by default. Activity
 reporting (Settings → Activity reporting) is opt-in per device and described in

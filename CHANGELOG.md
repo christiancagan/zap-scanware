@@ -5,6 +5,22 @@ All notable changes to MalwareShield are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.47.22] - 2026-10-21
+
+### Changed
+- **Allow App rebuilt** (`AllowAppScreen`): lists every user-installed app
+  (system apps excluded, sideloaded APKs included) with an Allow/Disallow
+  `Switch` plus `Allowed` / `Not allowed` and `APK` / `Store` tags per row. The
+  list refreshes on entry, cancels a stale load, and surfaces failures with a
+  Retry action while keeping the QUERY_ALL_PACKAGES banner.
+- `InstalledAppScanner.UserApp` gains a best-effort `installSource`
+  (`InstalledAppScanner.installSourceFor`; pure, `InstallSourceTest` 2).
+  `AllowAppViewModel` gains an `error` state and job-cancelling refresh.
+- Settings → Allowed apps shows an `Allowed` tag per entry.
+
+### Version
+- versionCode 85, versionName "1.47.22".
+
 ## [1.47.21] - 2026-10-21
 
 ### Added
